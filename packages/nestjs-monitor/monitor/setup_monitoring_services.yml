@@ -1,0 +1,40 @@
+- name: Setup stateful services
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Create a monitoring dir if it does not exist
+      ansible.builtin.file:
+        path: /monitoring
+        state: directory
+        mode: "0755"
+
+    - name: Copy file from host to machine
+      copy:
+        src: "{{ playbook_dir }}/docker-compose.yml"
+        dest: /monitoring/docker-compose.yml
+
+    - name: Copy prometheus config from host to machine
+      copy:
+        src: "{{ playbook_dir }}/prometheus"
+        dest: /monitoring/
+
+    - name: Copy grafana config from host to machine
+      copy:
+        src: "{{ playbook_dir }}/grafana"
+        dest: /monitoring/
+
+    - name: Stopping Services
+      community.docker.docker_compose:
+        project_src: /monitoring/
+        state: absent
+        services: [prometheus, grafana]
+      register: output
+
+    - name: Create and start services
+      community.docker.docker_compose:
+        project_src: /monitoring/
+        state: present
+      register: output
+
+    - debug:
+        var: output
