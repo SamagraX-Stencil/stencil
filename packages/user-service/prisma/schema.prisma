@@ -1,0 +1,1228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model assessment {
+  id                                          Int                                           @id @default(autoincrement())
+  type                                        String                                        @db.VarChar(8)
+  start                                       DateTime?                                     @db.Timestamptz(6)
+  end                                         DateTime?                                     @db.Timestamptz(6)
+  deadline_id                                 Int?
+  submission_type                             String?                                       @db.VarChar(8)
+  is_final                                    Boolean
+  is_enabled                                  Boolean?
+  assessment_combination                      Int[]
+  deadline                                    deadline?                                     @relation(fields: [deadline_id], references: [id])
+  assessment_au_lo_aggregate                  assessment_au_lo_aggregate[]
+  assessment_au_question_aggregate            assessment_au_question_aggregate[]
+  assessment_au_question_aggregate_submission assessment_au_question_aggregate_submission[]
+  assessment_cache                            assessment_cache[]
+  assessment_ep_grade                         assessment_ep_grade[]
+  assessment_ep_marks                         assessment_ep_marks[]
+  assessment_grade                            assessment_grade[]
+  assessment_stream                           assessment_stream[]
+  grade_assessment                            grade_assessment[]
+  lo_assessment                               lo_assessment[]
+  lo_submission                               lo_submission[]
+  question_assessment                         question_assessment[]
+  question_submission                         question_submission[]
+  student_submission                          student_submission[]
+  subject_submission                          subject_submission[]
+  submission_summary                          submission_summary[]
+
+  @@index([deadline_id], name: "assessment_deadline_id_e035e5a1")
+}
+
+model assessment_au_lo_aggregate {
+  created                               DateTime?                               @db.Timestamptz(6)
+  updated                               DateTime?                               @db.Timestamptz(6)
+  id                                    Int                                     @id @default(autoincrement())
+  assessment_id                         Int
+  los_id                                Int
+  assessment                            assessment                              @relation(fields: [assessment_id], references: [id])
+  server_logroup                        server_logroup                          @relation(fields: [los_id], references: [id])
+  assessment_au_lo_aggregate_submission assessment_au_lo_aggregate_submission[]
+
+  @@index([assessment_id], name: "assessment_au_lo_aggregate_assessment_id_c9116bb9")
+  @@index([los_id], name: "assessment_au_lo_aggregate_los_id_37199e71")
+}
+
+model assessment_au_lo_aggregate_submission {
+  created                    DateTime?                  @db.Timestamptz(6)
+  updated                    DateTime?                  @db.Timestamptz(6)
+  id                         Int                        @id @default(autoincrement())
+  students_cleared           Int
+  assessment_id              Int
+  grade_id                   Int
+  lo_id                      Int
+  school_id                  Int?
+  assessment_au_lo_aggregate assessment_au_lo_aggregate @relation(fields: [assessment_id], references: [id])
+  grade                      grade                      @relation(fields: [grade_id], references: [id])
+  lo                         lo                         @relation(fields: [lo_id], references: [id])
+  school                     school?                    @relation(fields: [school_id], references: [id])
+
+  @@index([assessment_id], name: "assessment_au_lo_aggregate_submission_assessment_id_70b49f0a")
+  @@index([grade_id], name: "assessment_au_lo_aggregate_submission_grade_id_f0d66c68")
+  @@index([lo_id], name: "assessment_au_lo_aggregate_submission_lo_id_b090a0c5")
+  @@index([school_id], name: "assessment_au_lo_aggregate_submission_school_id_8f365921")
+}
+
+model assessment_au_question_aggregate {
+  created              DateTime?             @db.Timestamptz(6)
+  updated              DateTime?             @db.Timestamptz(6)
+  id                   Int                   @id @default(autoincrement())
+  assessment_id        Int
+  question_id          Int?
+  assessment           assessment            @relation(fields: [assessment_id], references: [id])
+  server_questiongroup server_questiongroup? @relation(fields: [question_id], references: [id])
+
+  @@index([assessment_id], name: "assessment_au_question_aggregate_assessment_id_e34a737c")
+  @@index([question_id], name: "assessment_au_question_aggregate_los_id_a423c848")
+}
+
+model assessment_au_question_aggregate_submission {
+  created          DateTime?  @db.Timestamptz(6)
+  updated          DateTime?  @db.Timestamptz(6)
+  id               Int        @id @default(autoincrement())
+  students_cleared Int
+  assessment_id    Int
+  grade_id         Int
+  question_id      Int
+  school_id        Int?
+  assessment       assessment @relation(fields: [assessment_id], references: [id])
+  grade            grade      @relation(fields: [grade_id], references: [id])
+  question         question   @relation(fields: [question_id], references: [id])
+  school           school?    @relation(fields: [school_id], references: [id])
+
+  @@index([assessment_id], name: "assessment_au_question_agg_assessment_id_e5a4b584")
+  @@index([question_id], name: "assessment_au_question_agg_question_id_ca4feed0")
+  @@index([grade_id], name: "assessment_au_question_aggregate_submission_grade_id_dd72165f")
+  @@index([school_id], name: "assessment_au_question_aggregate_submission_school_id_cce03782")
+}
+
+model assessment_cache {
+  id               Int         @id @default(autoincrement())
+  created          DateTime?   @db.Timestamptz(6)
+  updated          DateTime?   @db.Timestamptz(6)
+  assessment_id    Int?
+  school_id        Int?
+  class_progress   Json?
+  subject_progress Json?
+  submission_data  Json?
+  los_data         Json?
+  assessment       assessment? @relation(fields: [assessment_id], references: [id])
+  school           school?     @relation(fields: [school_id], references: [id])
+
+  @@index([assessment_id], name: "assessment_cache_assessment_id_5b0b6eaa")
+  @@index([school_id], name: "assessment_cache_school_id_e18b77ad")
+}
+
+model assessment_ep_grade {
+  created                        DateTime?                        @db.Timestamptz(6)
+  updated                        DateTime?                        @db.Timestamptz(6)
+  id                             Int                              @id @default(autoincrement())
+  is_sms_enabled                 Boolean
+  sms_template_id                String?                          @db.Uuid
+  assessment_id                  Int
+  grade_mapping_id               Int?
+  assessment                     assessment                       @relation(fields: [assessment_id], references: [id])
+  assessment_grade_mapping       assessment_grade_mapping?        @relation(fields: [grade_mapping_id], references: [id])
+  assessment_ep_grade_submission assessment_ep_grade_submission[]
+
+  @@index([assessment_id], name: "assessment_ep_grade_assessment_id_9d58eb40")
+  @@index([grade_mapping_id], name: "assessment_ep_grade_grade_mapping_id_c90e34d3")
+}
+
+model assessment_ep_grade_submission {
+  created             DateTime?           @db.Timestamptz(6)
+  updated             DateTime?           @db.Timestamptz(6)
+  id                  Int                 @id @default(autoincrement())
+  assessment_grade    String              @db.VarChar(1)
+  assessment_id       Int
+  form_id             Int?
+  grade_id            Int?
+  sms_id              Int?
+  student_id          Int
+  subject_id          Int
+  school_id           Int?
+  assessment_ep_grade assessment_ep_grade @relation(fields: [assessment_id], references: [id])
+  grade_assessment    grade_assessment?   @relation(fields: [form_id], references: [id])
+  grade               grade?              @relation(fields: [grade_id], references: [id])
+  school              school?             @relation(fields: [school_id], references: [id])
+  sms                 sms?                @relation(fields: [sms_id], references: [id])
+  student             student             @relation(fields: [student_id], references: [id])
+  subject             subject             @relation(fields: [subject_id], references: [id])
+
+  @@index([assessment_id], name: "assessment_ep_grade_submission_assessment_id_db6661c3")
+  @@index([form_id], name: "assessment_ep_grade_submission_form_id_677b1020")
+  @@index([grade_id], name: "assessment_ep_grade_submission_grade_id_99152754")
+  @@index([school_id], name: "assessment_ep_grade_submission_school_id_e260c95a")
+  @@index([sms_id], name: "assessment_ep_grade_submission_sms_id_990c901a")
+  @@index([student_id], name: "assessment_ep_grade_submission_student_id_80b4178f")
+  @@index([subject_id], name: "assessment_ep_grade_submission_subject_id_67959872")
+}
+
+model assessment_ep_marks {
+  created                        DateTime?                        @db.Timestamptz(6)
+  updated                        DateTime?                        @db.Timestamptz(6)
+  id                             Int                              @id @default(autoincrement())
+  is_sms_enabled                 Boolean
+  sms_template_id                String?                          @db.Uuid
+  max_marks                      Int
+  pass_percentage                Float
+  assessment_id                  Int
+  max_marks_range_id             Int?
+  assessment                     assessment                       @relation(fields: [assessment_id], references: [id])
+  server_marksrange              server_marksrange?               @relation(fields: [max_marks_range_id], references: [id])
+  assessment_ep_marks_submission assessment_ep_marks_submission[]
+
+  @@index([assessment_id], name: "assessment_ep_marks_assessment_id_6cb9567c")
+  @@index([max_marks_range_id], name: "assessment_ep_marks_max_marks_range_id_43ea07b0")
+}
+
+model assessment_ep_marks_submission {
+  created             DateTime?           @db.Timestamptz(6)
+  updated             DateTime?           @db.Timestamptz(6)
+  id                  Int                 @id @default(autoincrement())
+  marks               Float
+  assessment_id       Int
+  form_id             Int?
+  grade_id            Int?
+  sms_id              Int?
+  student_id          Int
+  subject_id          Int
+  school_id           Int?
+  assessment_ep_marks assessment_ep_marks @relation(fields: [assessment_id], references: [id])
+  grade_assessment    grade_assessment?   @relation(fields: [form_id], references: [id])
+  grade               grade?              @relation(fields: [grade_id], references: [id])
+  school              school?             @relation(fields: [school_id], references: [id])
+  sms                 sms?                @relation(fields: [sms_id], references: [id])
+  student             student             @relation(fields: [student_id], references: [id])
+  subject             subject             @relation(fields: [subject_id], references: [id])
+
+  @@index([assessment_id], name: "assessment_ep_marks_submission_assessment_id_9eb88b11")
+  @@index([form_id], name: "assessment_ep_marks_submission_form_id_edd4db41")
+  @@index([grade_id], name: "assessment_ep_marks_submission_grade_id_daf2aabc")
+  @@index([school_id], name: "assessment_ep_marks_submission_school_id_41e5151b")
+  @@index([sms_id], name: "assessment_ep_marks_submission_sms_id_5c707015")
+  @@index([student_id], name: "assessment_ep_marks_submission_student_id_655549b1")
+  @@index([subject_id], name: "assessment_ep_marks_submission_subject_id_d5f06734")
+}
+
+model assessment_grade {
+  id            Int        @id @default(autoincrement())
+  assessment_id Int
+  grade_id      Int
+  assessment    assessment @relation(fields: [assessment_id], references: [id])
+  grade         grade      @relation(fields: [grade_id], references: [id])
+
+  @@unique([assessment_id, grade_id], name: "assessment_grade_assessment_id_grade_id_0e2a0f97_uniq")
+  @@index([assessment_id], name: "assessment_grade_assessment_id_c8c6f85c")
+  @@index([grade_id], name: "assessment_grade_grade_id_081af151")
+}
+
+model assessment_grade_mapping {
+  created             DateTime?             @db.Timestamptz(6)
+  updated             DateTime?             @db.Timestamptz(6)
+  id                  Int                   @id @default(autoincrement())
+  name                String                @db.VarChar(50)
+  mapping             Json
+  assessment_ep_grade assessment_ep_grade[]
+}
+
+model assessment_stream {
+  id            Int        @id @default(autoincrement())
+  assessment_id Int
+  stream_id     Int
+  assessment    assessment @relation(fields: [assessment_id], references: [id])
+  stream        stream     @relation(fields: [stream_id], references: [id])
+
+  @@unique([assessment_id, stream_id], name: "assessment_stream_assessment_id_stream_id_da8a2d6c_uniq")
+  @@index([assessment_id], name: "assessment_stream_assessment_id_bc516271")
+  @@index([stream_id], name: "assessment_stream_stream_id_65834252")
+}
+
+model attendance {
+  created            DateTime? @default(now()) @db.Timestamptz(6)
+  updated            DateTime? @default(now()) @db.Timestamptz(6)
+  id                 Int       @id @default(autoincrement())
+  date               DateTime  @db.Date
+  temperature        Float?
+  is_present         Boolean
+  student_id         Int?
+  taken_by_school_id Int?
+  student            student?  @relation(fields: [student_id], references: [id])
+  school             school?   @relation(fields: [taken_by_school_id], references: [id])
+
+  @@unique([student_id, date], name: "student-date")
+  @@index([student_id], name: "attendance_student_id_d55196c7")
+  @@index([taken_by_school_id], name: "attendance_taken_by_school_id_5cadefc1")
+}
+
+model auth_group {
+  id                     Int                      @id @default(autoincrement())
+  name                   String                   @unique @db.VarChar(150)
+  auth_group_permissions auth_group_permissions[]
+  auth_user_groups       auth_user_groups[]
+
+  @@index([name], name: "auth_group_name_a6ea08ec_like")
+}
+
+model auth_group_permissions {
+  id              Int             @id @default(autoincrement())
+  group_id        Int
+  permission_id   Int
+  auth_group      auth_group      @relation(fields: [group_id], references: [id])
+  auth_permission auth_permission @relation(fields: [permission_id], references: [id])
+
+  @@unique([group_id, permission_id], name: "auth_group_permissions_group_id_permission_id_0cd325b0_uniq")
+  @@index([group_id], name: "auth_group_permissions_group_id_b120cbf9")
+  @@index([permission_id], name: "auth_group_permissions_permission_id_84c5c92e")
+}
+
+model auth_permission {
+  id                         Int                          @id @default(autoincrement())
+  name                       String                       @db.VarChar(255)
+  content_type_id            Int
+  codename                   String                       @db.VarChar(100)
+  django_content_type        django_content_type          @relation(fields: [content_type_id], references: [id])
+  auth_group_permissions     auth_group_permissions[]
+  auth_user_user_permissions auth_user_user_permissions[]
+
+  @@unique([content_type_id, codename], name: "auth_permission_content_type_id_codename_01ab375a_uniq")
+  @@index([content_type_id], name: "auth_permission_content_type_id_2f476e4b")
+}
+
+model auth_user {
+  id                         Int                          @id @default(autoincrement())
+  password                   String                       @db.VarChar(128)
+  last_login                 DateTime?                    @db.Timestamptz(6)
+  is_superuser               Boolean
+  username                   String                       @unique @db.VarChar(150)
+  first_name                 String                       @db.VarChar(30)
+  last_name                  String                       @db.VarChar(150)
+  email                      String                       @db.VarChar(254)
+  is_staff                   Boolean
+  is_active                  Boolean
+  date_joined                DateTime                     @db.Timestamptz(6)
+  auth_user_groups           auth_user_groups[]
+  auth_user_user_permissions auth_user_user_permissions[]
+  django_admin_log           django_admin_log[]
+
+  @@index([username], name: "auth_user_username_6821ab7c_like")
+}
+
+model auth_user_groups {
+  id         Int        @id @default(autoincrement())
+  user_id    Int
+  group_id   Int
+  auth_group auth_group @relation(fields: [group_id], references: [id])
+  auth_user  auth_user  @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, group_id], name: "auth_user_groups_user_id_group_id_94350c0c_uniq")
+  @@index([group_id], name: "auth_user_groups_group_id_97559544")
+  @@index([user_id], name: "auth_user_groups_user_id_6a12ed8b")
+}
+
+model auth_user_user_permissions {
+  id              Int             @id @default(autoincrement())
+  user_id         Int
+  permission_id   Int
+  auth_permission auth_permission @relation(fields: [permission_id], references: [id])
+  auth_user       auth_user       @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, permission_id], name: "auth_user_user_permissions_user_id_permission_id_14a6b632_uniq")
+  @@index([permission_id], name: "auth_user_user_permissions_permission_id_1fbb5f2c")
+  @@index([user_id], name: "auth_user_user_permissions_user_id_a95ead1b")
+}
+
+model dashboard_userdashboardmodule {
+  id        Int     @id @default(autoincrement())
+  title     String  @db.VarChar(255)
+  module    String  @db.VarChar(255)
+  app_label String? @db.VarChar(255)
+  user      Int
+  column    Int
+  order     Int
+  settings  String
+  children  String
+  collapsed Boolean
+}
+
+model deadline {
+  id         Int          @id @default(autoincrement())
+  acad_year  String       @db.VarChar(9)
+  date       DateTime     @db.Timestamptz(6)
+  district   String       @db.VarChar(17)
+  session    String       @db.VarChar(1)
+  assessment assessment[]
+}
+
+model django_admin_log {
+  id                  Int                  @id @default(autoincrement())
+  action_time         DateTime             @db.Timestamptz(6)
+  object_id           String?
+  object_repr         String               @db.VarChar(200)
+  action_flag         Int                  @db.SmallInt
+  change_message      String
+  content_type_id     Int?
+  user_id             Int
+  django_content_type django_content_type? @relation(fields: [content_type_id], references: [id])
+  auth_user           auth_user            @relation(fields: [user_id], references: [id])
+
+  @@index([content_type_id], name: "django_admin_log_content_type_id_c4bce8eb")
+  @@index([user_id], name: "django_admin_log_user_id_c564eba6")
+}
+
+model django_celery_results_chordcounter {
+  id        Int    @id @default(autoincrement())
+  group_id  String @unique @db.VarChar(255)
+  sub_tasks String
+  count     Int
+
+  @@index([group_id], name: "django_celery_results_chordcounter_group_id_1f70858c_like")
+}
+
+model django_celery_results_taskresult {
+  id               Int      @id @default(autoincrement())
+  task_id          String   @unique @db.VarChar(255)
+  status           String   @db.VarChar(50)
+  content_type     String   @db.VarChar(128)
+  content_encoding String   @db.VarChar(64)
+  result           String?
+  date_done        DateTime @db.Timestamptz(6)
+  traceback        String?
+  meta             String?
+  task_args        String?
+  task_kwargs      String?
+  task_name        String?  @db.VarChar(255)
+  worker           String?  @db.VarChar(100)
+  date_created     DateTime @db.Timestamptz(6)
+
+  @@index([date_created], name: "django_celery_results_taskresult_date_created_099f3424")
+  @@index([date_done], name: "django_celery_results_taskresult_date_done_49edada6")
+  @@index([status], name: "django_celery_results_taskresult_status_cbbed23a")
+  @@index([status], name: "django_celery_results_taskresult_status_cbbed23a_like")
+  @@index([task_id], name: "django_celery_results_taskresult_task_id_de0d95bf_like")
+  @@index([task_name], name: "django_celery_results_taskresult_task_name_90987df3")
+  @@index([task_name], name: "django_celery_results_taskresult_task_name_90987df3_like")
+  @@index([worker], name: "django_celery_results_taskresult_worker_f8711389")
+  @@index([worker], name: "django_celery_results_taskresult_worker_f8711389_like")
+}
+
+model django_content_type {
+  id               Int                @id @default(autoincrement())
+  app_label        String             @db.VarChar(100)
+  model            String             @db.VarChar(100)
+  auth_permission  auth_permission[]
+  django_admin_log django_admin_log[]
+
+  @@unique([app_label, model], name: "django_content_type_app_label_model_76bd3d3b_uniq")
+}
+
+model django_migrations {
+  id      Int      @id @default(autoincrement())
+  app     String   @db.VarChar(255)
+  name    String   @db.VarChar(255)
+  applied DateTime @db.Timestamptz(6)
+}
+
+model django_session {
+  session_key  String   @id @db.VarChar(40)
+  session_data String
+  expire_date  DateTime @db.Timestamptz(6)
+
+  @@index([expire_date], name: "django_session_expire_date_a5c62663")
+  @@index([session_key], name: "django_session_session_key_c0390e0f_like")
+}
+
+model enrollment {
+  id           Int       @id @default(autoincrement())
+  created      DateTime? @db.Timestamptz(6)
+  updated      DateTime? @db.Timestamptz(6)
+  acad_year    String    @db.VarChar(9)
+  grade_number Int
+  section      String    @db.VarChar(1)
+  school_id    Int?
+  student_id   Int?
+  school       school?   @relation(fields: [school_id], references: [id])
+  student      student?  @relation(fields: [student_id], references: [id])
+
+  @@unique([student_id, acad_year], name: "enrollment_student_id_acad_year_df65ef62_uniq")
+  @@index([school_id], name: "server_enrollment_school_id_0c7af6d1")
+  @@index([student_id], name: "server_enrollment_student_id_a1c25d7b")
+}
+
+model grade {
+  id                                          Int                                           @id @default(autoincrement())
+  number                                      Int
+  section                                     String                                        @db.VarChar(1)
+  stream_id                                   Int?
+  stream                                      stream?                                       @relation(fields: [stream_id], references: [id])
+  assessment_au_lo_aggregate_submission       assessment_au_lo_aggregate_submission[]
+  assessment_au_question_aggregate_submission assessment_au_question_aggregate_submission[]
+  assessment_ep_grade_submission              assessment_ep_grade_submission[]
+  assessment_ep_marks_submission              assessment_ep_marks_submission[]
+  assessment_grade                            assessment_grade[]
+  lo_submission                               lo_submission[]
+  question_submission                         question_submission[]
+  school_grade                                school_grade[]
+  subject_submission                          subject_submission[]
+
+  @@index([stream_id], name: "grade_stream_id_26a85b82")
+}
+
+model grade_assessment {
+  created                        DateTime?                        @db.Timestamptz(6)
+  updated                        DateTime?                        @db.Timestamptz(6)
+  id                             Int                              @id @default(autoincrement())
+  form_id                        String                           @unique @db.Uuid
+  grade_number                   Int
+  signature                      String?                          @db.VarChar(250)
+  assessment_id                  Int?
+  school_id                      Int?
+  section                        String                           @db.VarChar(1)
+  streams_id                     Int?
+  assessment                     assessment?                      @relation(fields: [assessment_id], references: [id])
+  school                         school?                          @relation(fields: [school_id], references: [id])
+  stream                         stream?                          @relation(fields: [streams_id], references: [id])
+  assessment_ep_grade_submission assessment_ep_grade_submission[]
+  assessment_ep_marks_submission assessment_ep_marks_submission[]
+  student_submission             student_submission[]
+
+  @@index([assessment_id], name: "grade_assessment_assessment_id_6beb2bec")
+  @@index([school_id], name: "grade_assessment_school_id_944f75c5")
+  @@index([streams_id], name: "grade_assessment_streams_id_6ca61f38")
+}
+
+model jet_bookmark {
+  id       Int      @id @default(autoincrement())
+  url      String   @db.VarChar(200)
+  title    String   @db.VarChar(255)
+  user     Int
+  date_add DateTime @db.Timestamptz(6)
+}
+
+model jet_pinnedapplication {
+  id        Int      @id @default(autoincrement())
+  app_label String   @db.VarChar(255)
+  user      Int
+  date_add  DateTime @db.Timestamptz(6)
+}
+
+model lo {
+  id                                    Int                                     @id @default(autoincrement())
+  code                                  String?                                 @db.VarChar(8)
+  name                                  String
+  grade_number                          Int
+  subject_id                            Int?
+  is_unit                               Boolean
+  subject                               subject?                                @relation(fields: [subject_id], references: [id])
+  assessment_au_lo_aggregate_submission assessment_au_lo_aggregate_submission[]
+  lo_assessment                         lo_assessment[]
+  lo_submission                         lo_submission[]
+  question                              question[]
+  server_logroup_lo                     server_logroup_lo[]
+  subject_submission_selected_lo        subject_submission_selected_lo[]
+
+  @@index([subject_id], name: "lo_subject_id_a35d6fc1")
+}
+
+model lo_assessment {
+  id            Int        @id @default(autoincrement())
+  lo_id         Int
+  assessment_id Int
+  assessment    assessment @relation(fields: [assessment_id], references: [id])
+  lo            lo         @relation(fields: [lo_id], references: [id])
+
+  @@unique([lo_id, assessment_id], name: "lo_assessment_lo_id_assessment_id_f2d05033_uniq")
+  @@index([assessment_id], name: "lo_assessment_assessment_id_524ce752")
+  @@index([lo_id], name: "lo_assessment_lo_id_e71eb10d")
+}
+
+model lo_submission {
+  created          DateTime?  @db.Timestamptz(6)
+  updated          DateTime?  @db.Timestamptz(6)
+  id               Int        @id @default(autoincrement())
+  students_cleared Int
+  assessment_id    Int
+  lo_id            Int
+  school_id        Int
+  grade_id         Int
+  assessment       assessment @relation(fields: [assessment_id], references: [id])
+  grade            grade      @relation(fields: [grade_id], references: [id])
+  lo               lo         @relation(fields: [lo_id], references: [id])
+  school           school     @relation(fields: [school_id], references: [id])
+
+  @@index([assessment_id], name: "lo_submission_assessment_id_77d7b852")
+  @@index([grade_id], name: "lo_submission_grade_id_4aad3970")
+  @@index([lo_id], name: "lo_submission_lo_id_ab3f2b69")
+  @@index([school_id], name: "lo_submission_school_id_6b790f30")
+}
+
+model location {
+  id       Int      @id @default(autoincrement())
+  district String   @db.VarChar(17)
+  block    String?  @db.VarChar(50)
+  cluster  String?  @db.VarChar(50)
+  school   school[]
+}
+
+model notification {
+  created  DateTime? @db.Timestamptz(6)
+  updated  DateTime? @db.Timestamptz(6)
+  id       Int       @id @default(autoincrement())
+  token    String    @db.VarChar(512)
+  text     String
+  tries    Int
+  last_try DateTime  @db.Timestamptz(6)
+  user     Int
+  status   String    @db.VarChar(9)
+}
+
+model odk_submission {
+  id                             Int       @id @default(autoincrement())
+  form_id                        String    @db.VarChar(50)
+  data                           String?
+  status                         Int?
+  form_name_id                   Int?
+  school_udise                   Int
+  submission_date                DateTime? @db.Timestamptz(6)
+  xml                            String?
+  is_duplicate                   Boolean
+  is_duplicate_notification_sent Boolean
+
+  @@index([status], name: "odk-status-idx")
+  @@index([form_id], name: "odk-sub-formid-idx")
+  @@index([school_udise], name: "odk-sub-school-idx")
+}
+
+model old_assessment {
+  created         DateTime? @db.Timestamptz(6)
+  updated         DateTime? @db.Timestamptz(6)
+  id              Int       @id @default(autoincrement())
+  year            String?   @db.VarChar(9)
+  udise           String?   @db.VarChar(12)
+  clazz           String?   @db.VarChar(2)
+  section         String?   @db.VarChar(2)
+  subject         String?   @db.VarChar(20)
+  roll            String?   @db.VarChar(10)
+  student_id      String?   @db.VarChar(15)
+  gender          String?   @db.VarChar(10)
+  category        String?   @db.VarChar(10)
+  cwsn            String?   @db.VarChar(5)
+  sa1             Int
+  sa2             Int
+  total           Float
+  percentage      Float
+  grade           String    @db.VarChar(1)
+  grade_ab        Float
+  district        String    @db.VarChar(20)
+  block           String?   @db.VarChar(50)
+  cluster         String?   @db.VarChar(50)
+  school_name     String?   @db.VarChar(50)
+  school_category String?   @db.VarChar(50)
+  summer_winter   String?   @db.VarChar(10)
+}
+
+model old_lo_master {
+  created    DateTime? @db.Timestamptz(6)
+  updated    DateTime? @db.Timestamptz(6)
+  id         Int       @id @default(autoincrement())
+  year       String?   @db.VarChar(9)
+  clazz      String?   @db.VarChar(2)
+  subject    String?   @db.VarChar(20)
+  code       String?   @db.VarChar(10)
+  competency String
+}
+
+model old_lo_submissions {
+  created             DateTime? @db.Timestamptz(6)
+  updated             DateTime? @db.Timestamptz(6)
+  id                  Int       @id @default(autoincrement())
+  school_name         String?   @db.VarChar(50)
+  clazz               String?   @db.VarChar(2)
+  subject             String?   @db.VarChar(20)
+  learning_outcome    String
+  achievement_percent Float
+}
+
+model old_schools {
+  created  DateTime? @db.Timestamptz(6)
+  updated  DateTime? @db.Timestamptz(6)
+  id       Int       @id @default(autoincrement())
+  district String?   @db.VarChar(50)
+  block    String?   @db.VarChar(50)
+  cluster  String?   @db.VarChar(50)
+  udise    String?   @db.VarChar(15)
+  name     String?   @db.VarChar(50)
+  category String?   @db.VarChar(50)
+  session  String?   @db.VarChar(10)
+}
+
+model question {
+  id                                          Int                                           @id @default(autoincrement())
+  statement                                   String
+  cutoff                                      Decimal?                                      @db.Decimal(4, 2)
+  lo_id                                       Int?
+  lo                                          lo?                                           @relation(fields: [lo_id], references: [id])
+  assessment_au_question_aggregate_submission assessment_au_question_aggregate_submission[]
+  question_assessment                         question_assessment[]
+  question_submission                         question_submission[]
+  server_questiongroup_question               server_questiongroup_question[]
+
+  @@index([lo_id], name: "question_lo_id_fad5517d")
+}
+
+model question_assessment {
+  id            Int        @id @default(autoincrement())
+  question_id   Int
+  assessment_id Int
+  assessment    assessment @relation(fields: [assessment_id], references: [id])
+  question      question   @relation(fields: [question_id], references: [id])
+
+  @@unique([question_id, assessment_id], name: "question_assessment_question_id_assessment_id_ea71dde4_uniq")
+  @@index([assessment_id], name: "question_assessment_assessment_id_f775e63a")
+  @@index([question_id], name: "question_assessment_question_id_e5f228be")
+}
+
+model question_submission {
+  created          DateTime?  @db.Timestamptz(6)
+  updated          DateTime?  @db.Timestamptz(6)
+  id               Int        @id @default(autoincrement())
+  assessment_id    Int
+  school_id        Int
+  question_id      Int
+  students_cleared Int
+  grade_id         Int
+  assessment       assessment @relation(fields: [assessment_id], references: [id])
+  grade            grade      @relation(fields: [grade_id], references: [id])
+  question         question   @relation(fields: [question_id], references: [id])
+  school           school     @relation(fields: [school_id], references: [id])
+
+  @@index([assessment_id], name: "question_submission_assessment_id_fbc07e0f")
+  @@index([grade_id], name: "question_submission_grade_id_f716969f")
+  @@index([question_id], name: "question_submission_question_id_540e4dd4")
+  @@index([school_id], name: "question_submission_school_id_d78b85ed")
+}
+
+model questions_submission_expanded {
+  created             DateTime? @db.Timestamptz(6)
+  updated             DateTime? @db.Timestamptz(6)
+  id                  Int       @id @default(autoincrement())
+  acad_year           String    @db.VarChar(9)
+  assessment_type     String    @db.VarChar(9)
+  assessment_start    DateTime? @db.Timestamptz(6)
+  assessment_end      DateTime? @db.Timestamptz(6)
+  grade               String    @db.VarChar(3)
+  subject             String?   @db.VarChar(20)
+  lo_code             String?   @db.VarChar(8)
+  lo_name             String
+  students_cleared    Int
+  grade_assessment_id Int
+  question_id         Int
+  student_present     Int
+  achievement_level   Float
+  school_udise        Int
+  school_type         String    @db.VarChar(4)
+  school_session      String    @db.VarChar(1)
+  district            String    @db.VarChar(17)
+  block               String?   @db.VarChar(50)
+  cluster             String?   @db.VarChar(50)
+
+  @@index([subject], name: "server_questionsubmissionview_subject_79f68f78_like")
+}
+
+model school {
+  id                                          Int                                           @id @default(autoincrement())
+  udise                                       Int                                           @unique
+  name                                        String?                                       @db.VarChar(250)
+  type                                        String                                        @db.VarChar(4)
+  session                                     String                                        @db.VarChar(1)
+  location_id                                 Int?
+  enroll_count                                Int?
+  is_active                                   Boolean
+  location                                    location?                                     @relation(fields: [location_id], references: [id])
+  assessment_au_lo_aggregate_submission       assessment_au_lo_aggregate_submission[]
+  assessment_au_question_aggregate_submission assessment_au_question_aggregate_submission[]
+  assessment_cache                            assessment_cache[]
+  assessment_ep_grade_submission              assessment_ep_grade_submission[]
+  assessment_ep_marks_submission              assessment_ep_marks_submission[]
+  attendance                                  attendance[]
+  enrollment                                  enrollment[]
+  grade_assessment                            grade_assessment[]
+  lo_submission                               lo_submission[]
+  question_submission                         question_submission[]
+  school_cache                                school_cache?
+  school_grade                                school_grade[]
+  student                                     student[]
+  subject_submission                          subject_submission[]
+  teacher                                     teacher[]
+
+  @@index([location_id], name: "school_location_id_429307ea")
+}
+
+model school_cache {
+  id          Int       @id @default(autoincrement())
+  created     DateTime? @db.Timestamptz(6)
+  updated     DateTime? @db.Timestamptz(6)
+  stream_data Json?
+  school_id   Int?      @unique
+  school      school?   @relation(fields: [school_id], references: [id])
+}
+
+model school_grade {
+  id        Int    @id @default(autoincrement())
+  school_id Int
+  grade_id  Int
+  grade     grade  @relation(fields: [grade_id], references: [id])
+  school    school @relation(fields: [school_id], references: [id])
+
+  @@unique([school_id, grade_id], name: "school_grade_school_id_grade_id_37387cad_uniq")
+  @@index([grade_id], name: "school_grade_grade_id_400c027b")
+  @@index([school_id], name: "school_grade_school_id_9bd71438")
+}
+
+model server_logroup {
+  created                    DateTime?                    @db.Timestamptz(6)
+  updated                    DateTime?                    @db.Timestamptz(6)
+  id                         Int                          @id @default(autoincrement())
+  name                       String                       @db.VarChar(50)
+  assessment_au_lo_aggregate assessment_au_lo_aggregate[]
+  server_logroup_lo          server_logroup_lo[]
+}
+
+model server_logroup_lo {
+  id             Int            @id @default(autoincrement())
+  logroup_id     Int
+  lo_id          Int
+  lo             lo             @relation(fields: [lo_id], references: [id])
+  server_logroup server_logroup @relation(fields: [logroup_id], references: [id])
+
+  @@unique([logroup_id, lo_id], name: "server_logroup_lo_logroup_id_lo_id_b89be6c0_uniq")
+  @@index([lo_id], name: "server_logroup_lo_lo_id_c501b552")
+  @@index([logroup_id], name: "server_logroup_lo_logroup_id_117a092c")
+}
+
+model server_marksrange {
+  created             DateTime?             @db.Timestamptz(6)
+  updated             DateTime?             @db.Timestamptz(6)
+  id                  Int                   @id @default(autoincrement())
+  min                 Int
+  max                 Int
+  assessment_ep_marks assessment_ep_marks[]
+}
+
+model server_questiongroup {
+  created                          DateTime?                          @db.Timestamptz(6)
+  updated                          DateTime?                          @db.Timestamptz(6)
+  id                               Int                                @id @default(autoincrement())
+  name                             String                             @db.VarChar(50)
+  assessment_au_question_aggregate assessment_au_question_aggregate[]
+  server_questiongroup_question    server_questiongroup_question[]
+}
+
+model server_questiongroup_question {
+  id                   Int                  @id @default(autoincrement())
+  questiongroup_id     Int
+  question_id          Int
+  question             question             @relation(fields: [question_id], references: [id])
+  server_questiongroup server_questiongroup @relation(fields: [questiongroup_id], references: [id])
+
+  @@unique([questiongroup_id, question_id], name: "server_questiongroup_que_questiongroup_id_questio_ce11f00d_uniq")
+  @@index([question_id], name: "server_questiongroup_question_question_id_3e90dc7f")
+  @@index([questiongroup_id], name: "server_questiongroup_question_questiongroup_id_4e7f6396")
+}
+
+model silk_profile {
+  id                   Int                    @id @default(autoincrement())
+  name                 String                 @db.VarChar(300)
+  start_time           DateTime               @db.Timestamptz(6)
+  end_time             DateTime?              @db.Timestamptz(6)
+  time_taken           Float?
+  file_path            String                 @db.VarChar(300)
+  line_num             Int?
+  end_line_num         Int?
+  func_name            String                 @db.VarChar(300)
+  exception_raised     Boolean
+  dynamic              Boolean
+  request_id           String?                @db.VarChar(36)
+  silk_request         silk_request?          @relation(fields: [request_id], references: [id])
+  silk_profile_queries silk_profile_queries[]
+
+  @@index([request_id], name: "silk_profile_request_id_7b81bd69")
+  @@index([request_id], name: "silk_profile_request_id_7b81bd69_like")
+}
+
+model silk_profile_queries {
+  id            Int           @id @default(autoincrement())
+  profile_id    Int
+  sqlquery_id   Int
+  silk_profile  silk_profile  @relation(fields: [profile_id], references: [id])
+  silk_sqlquery silk_sqlquery @relation(fields: [sqlquery_id], references: [id])
+
+  @@unique([profile_id, sqlquery_id], name: "silk_profile_queries_profile_id_sqlquery_id_b2403d9b_uniq")
+  @@index([profile_id], name: "silk_profile_queries_profile_id_a3d76db8")
+  @@index([sqlquery_id], name: "silk_profile_queries_sqlquery_id_155df455")
+}
+
+model silk_request {
+  id                      String          @id @db.VarChar(36)
+  path                    String          @db.VarChar(190)
+  query_params            String
+  raw_body                String
+  body                    String
+  method                  String          @db.VarChar(10)
+  start_time              DateTime        @db.Timestamptz(6)
+  view_name               String?         @db.VarChar(190)
+  end_time                DateTime?       @db.Timestamptz(6)
+  time_taken              Float?
+  encoded_headers         String
+  meta_time               Float?
+  meta_num_queries        Int?
+  meta_time_spent_queries Float?
+  pyprofile               String
+  num_sql_queries         Int
+  prof_file               String          @db.VarChar(300)
+  silk_profile            silk_profile[]
+  silk_response           silk_response?
+  silk_sqlquery           silk_sqlquery[]
+
+  @@index([id], name: "silk_request_id_5a356c4f_like")
+  @@index([path], name: "silk_request_path_9f3d798e")
+  @@index([path], name: "silk_request_path_9f3d798e_like")
+  @@index([start_time], name: "silk_request_start_time_1300bc58")
+  @@index([view_name], name: "silk_request_view_name_68559f7b")
+  @@index([view_name], name: "silk_request_view_name_68559f7b_like")
+}
+
+model silk_response {
+  id              String       @id @db.VarChar(36)
+  status_code     Int
+  raw_body        String
+  body            String
+  encoded_headers String
+  request_id      String       @unique @db.VarChar(36)
+  silk_request    silk_request @relation(fields: [request_id], references: [id])
+
+  @@index([id], name: "silk_response_id_dda88710_like")
+  @@index([request_id], name: "silk_response_request_id_1e8e2776_like")
+}
+
+model silk_sqlquery {
+  id                   Int                    @id @default(autoincrement())
+  query                String
+  start_time           DateTime?              @db.Timestamptz(6)
+  end_time             DateTime?              @db.Timestamptz(6)
+  time_taken           Float?
+  traceback            String
+  request_id           String?                @db.VarChar(36)
+  identifier           Int
+  silk_request         silk_request?          @relation(fields: [request_id], references: [id])
+  silk_profile_queries silk_profile_queries[]
+
+  @@index([request_id], name: "silk_sqlquery_request_id_6f8f0527")
+  @@index([request_id], name: "silk_sqlquery_request_id_6f8f0527_like")
+}
+
+model sms {
+  created                        DateTime?                        @db.Timestamptz(6)
+  updated                        DateTime?                        @db.Timestamptz(6)
+  id                             Int                              @id @default(autoincrement())
+  message_id                     String                           @unique @db.VarChar(50)
+  school                         Int
+  form_id                        String                           @db.VarChar(50)
+  phone                          BigInt?
+  status                         String                           @db.VarChar(25)
+  form_type                      String                           @db.VarChar(15)
+  gupshup_updated                DateTime?                        @db.Timestamptz(6)
+  text                           String?
+  response_code                  Int?
+  tries                          Int
+  history                        Json?
+  student_id                     Int?
+  submitted                      DateTime                         @db.Timestamptz(6)
+  student                        student?                         @relation(fields: [student_id], references: [id])
+  assessment_ep_grade_submission assessment_ep_grade_submission[]
+  assessment_ep_marks_submission assessment_ep_marks_submission[]
+  student_submission             student_submission[]
+
+  @@index([created, tries, response_code, status], name: "sms-idx-created-status-tries-code")
+  @@index([message_id], name: "sms-idx-msg-id")
+  @@index([status, tries], name: "sms-idx-status-tries")
+  @@index([text, phone], name: "sms-text-phone-idx")
+  @@index([form_id], name: "sms_formid_idx")
+  @@index([message_id], name: "sms_messageId_564a7374_like")
+  @@index([school, form_type], name: "sms_school_formtype_idx")
+  @@index([status, school], name: "sms_school_status_idx")
+  @@index([status], name: "sms_status_idx")
+  @@index([student_id], name: "sms_student_id_d1cd8632")
+}
+
+model static {
+  id                Int       @id @default(autoincrement())
+  created           DateTime? @db.Timestamptz(6)
+  updated           DateTime? @db.Timestamptz(6)
+  current_acad_year String    @db.VarChar(9)
+}
+
+model stream {
+  id                         Int                          @id @default(autoincrement())
+  tag                        String?                      @db.VarChar(25)
+  total_subjects             Int
+  total_subjects_opt_1       Int
+  total_subjects_opt_2       Int
+  total_subjects_opt_3       Int
+  total_subjects_opt_4       Int
+  grade_number               Int?
+  assessment_stream          assessment_stream[]
+  grade                      grade[]
+  grade_assessment           grade_assessment[]
+  stream_common_subject      stream_common_subject[]
+  stream_optional_subjects_1 stream_optional_subjects_1[]
+  stream_optional_subjects_2 stream_optional_subjects_2[]
+  stream_optional_subjects_3 stream_optional_subjects_3[]
+  stream_optional_subjects_4 stream_optional_subjects_4[]
+  subject_submission         subject_submission[]
+}
+
+model stream_common_subject {
+  id         Int     @id @default(autoincrement())
+  stream_id  Int
+  subject_id Int
+  stream     stream  @relation(fields: [stream_id], references: [id])
+  subject    subject @relation(fields: [subject_id], references: [id])
+
+  @@unique([stream_id, subject_id], name: "stream_common_subject_stream_id_subject_id_da4abd3e_uniq")
+  @@index([stream_id], name: "stream_common_subject_stream_id_fb6b2029")
+  @@index([subject_id], name: "stream_common_subject_subject_id_23a05ba7")
+}
+
+model stream_optional_subjects_1 {
+  id         Int     @id @default(autoincrement())
+  stream_id  Int
+  subject_id Int
+  stream     stream  @relation(fields: [stream_id], references: [id])
+  subject    subject @relation(fields: [subject_id], references: [id])
+
+  @@unique([stream_id, subject_id], name: "stream_optional_subjects_1_stream_id_subject_id_fd5a86e1_uniq")
+  @@index([stream_id], name: "stream_optional_subjects_1_stream_id_1352a099")
+  @@index([subject_id], name: "stream_optional_subjects_1_subject_id_d4248bf6")
+}
+
+model stream_optional_subjects_2 {
+  id         Int     @id @default(autoincrement())
+  stream_id  Int
+  subject_id Int
+  stream     stream  @relation(fields: [stream_id], references: [id])
+  subject    subject @relation(fields: [subject_id], references: [id])
+
+  @@unique([stream_id, subject_id], name: "stream_optional_subjects_2_stream_id_subject_id_f8d9242a_uniq")
+  @@index([stream_id], name: "stream_optional_subjects_2_stream_id_6adb5b26")
+  @@index([subject_id], name: "stream_optional_subjects_2_subject_id_0b734bff")
+}
+
+model stream_optional_subjects_3 {
+  id         Int     @id @default(autoincrement())
+  stream_id  Int
+  subject_id Int
+  stream     stream  @relation(fields: [stream_id], references: [id])
+  subject    subject @relation(fields: [subject_id], references: [id])
+
+  @@unique([stream_id, subject_id], name: "stream_optional_subjects_3_stream_id_subject_id_62d65ad9_uniq")
+  @@index([stream_id], name: "stream_optional_subjects_3_stream_id_3a3ca88d")
+  @@index([subject_id], name: "stream_optional_subjects_3_subject_id_3e44c320")
+}
+
+model stream_optional_subjects_4 {
+  id         Int     @id @default(autoincrement())
+  stream_id  Int
+  subject_id Int
+  stream     stream  @relation(fields: [stream_id], references: [id])
+  subject    subject @relation(fields: [subject_id], references: [id])
+
+  @@unique([stream_id, subject_id], name: "stream_optional_subjects_4_stream_id_subject_id_ce0aac6e_uniq")
+  @@index([stream_id], name: "stream_optional_subjects_4_stream_id_989cd299")
+  @@index([subject_id], name: "stream_optional_subjects_4_subject_id_ce1acd7d")
+}
+
+model student {
+  id                             Int                              @id @default(autoincrement())
+  name                           String?                          @db.VarChar(100)
+  section                        String                           @db.VarChar(1)
+  grade_number                   Int
+  phone                          BigInt?
+  roll                           Int?
+  father_name                    String?                          @db.VarChar(300)
+  mother_name                    String?                          @db.VarChar(300)
+  gender                         String                           @db.VarChar(1)
+  school_id                      Int?
+  category                       String                           @db.VarChar(2)
+  is_cwsn                        Boolean
+  admission_number               Int?
+  is_enabled                     Boolean
+  previous_acad_year             String                           @db.VarChar(9)
+  previous_grade                 Int
+  grade_year_mapping             String[]                         @db.VarChar(20)
+  created                        DateTime?                        @db.Timestamptz(6)
+  updated                        DateTime?                        @db.Timestamptz(6)
+  stream_tag                     String?                          @db.VarChar(50)
+  school                         school?                          @relation(fields: [school_id], references: [id])
+  assessment_ep_grade_submission assessment_ep_grade_submission[]
+  assessment_ep_marks_submission assessment_ep_marks_submission[]
+  attendance                     attendance[]
+  enrollment                     enrollment[]
+  sms                            sms[]
+  student_subject                student_subject[]
+  student_submission             student_submission[]
+
+  @@index([school_id], name: "Student_school_id_87dda7cd")
+  @@index([category], name: "stud_cat_idx")
+  @@index([is_cwsn], name: "stud_cwsn_idx")
+  @@index([gender], name: "stud_gen_idx")
+  @@index([grade_number], name: "stud_grade_idx")
+  @@index([is_enabled, school_id], name: "student_is_enabled_school_idx")
+}
+
+model student_subject {
+  id         Int     @id @default(autoincrement())
+  student_id Int
+  subject_id Int
+  student    student @relation(fields: [student_id], references: [id])
+  subject    subject @relation(fields: [subject_id], references: [id])
+
+  @@unique([student_id, subject_id], name: "student_subject_student_id_subject_id_cc31a1e6_uniq")
+  @@index([student_id], name: "student_subject_student_id_fc398bf1")
+  @@index([subject_id], name: "student_subject_subject_id_771923a7")
+}
+
+model student_submission {
+  created            DateTime?         @db.Timestamptz(6)
+  updated            DateTime?         @db.Timestamptz(6)
+  id                 Int               @id @default(autoincrement())
+  assessment_grade   String            @db.VarChar(1)
+  grade_number       Int
+  assessment_id      Int
+  form_id            Int?
+  sms_id             Int?
+  student_id         Int
+  subject_id         Int
+  section            String            @db.VarChar(1)
+  assessment_percent Float?
+  assessment         assessment        @relation(fields: [assessment_id], references: [id])
+  grade_assessment   grade_assessment? @relation(fields: [form_id], references: [id])
+  sms                sms?              @relation(fields: [sms_id], references: [id])
+  student            student           @relation(fields: [student_id], references: [id])
+  subject            subject           @relation(fields: [subject_id], references: [id])
+
+  @@index([assessment_grade], name: "stud_sub_ass_grade_idx")
+  @@index([assessment_id], name: "student_submission_assessment_id_c664e230")
+  @@index([form_id], name: "student_submission_form_id_d4a337f2")
+  @@index([sms_id], name: "student_submission_sms_id_9a525bbc")
+  @@index([student_id], name: "student_submission_student_id_904b832b")
+  @@index([subject_id], name: "student_submission_subject_id_966da6e3")
+}
+
+model subject {
+  id                             Int                              @id @default(autoincrement())
+  name                           String?                          @db.VarChar(20)
+  grade_number                   Int
+  assessment_ep_grade_submission assessment_ep_grade_submission[]
+  assessment_ep_marks_submission assessment_ep_marks_submission[]
+  lo                             lo[]
+  stream_common_subject          stream_common_subject[]
+  stream_optional_subjects_1     stream_optional_subjects_1[]
+  stream_optional_subjects_2     stream_optional_subjects_2[]
+  stream_optional_subjects_3     stream_optional_subjects_3[]
+  stream_optional_subjects_4     stream_optional_subjects_4[]
+  student_subject                student_subject[]
+  student_submission             student_submission[]
+  subject_submission             subject_submission[]
+  teacher_subjects               teacher_subjects[]
+
+  @@unique([name, grade_number], name: "subject_name_grade_number_a273f33e_uniq")
+}
+
+model subject_submission {
+  created                        DateTime?                        @db.Timestamptz(6)
+  updated                        DateTime?                        @db.Timestamptz(6)
+  id                             Int                              @id @default(autoincrement())
+  assessment_id                  Int
+  school_id                      Int
+  subject_id                     Int
+  stream_id                      Int?
+  grade_id                       Int?
+  assessment                     assessment                       @relation(fields: [assessment_id], references: [id])
+  grade                          grade?                           @relation(fields: [grade_id], references: [id])
+  school                         school                           @relation(fields: [school_id], references: [id])
+  stream                         stream?                          @relation(fields: [stream_id], references: [id])
+  subject                        subject                          @relation(fields: [subject_id], references: [id])
+  subject_submission_selected_lo subject_submission_selected_lo[]
+
+  @@index([assessment_id], name: "subject_submission_assessment_id_1b067946")
+  @@index([grade_id], name: "subject_submission_grade_id_0f0162e0")
+  @@index([school_id], name: "subject_submission_school_id_3893a9b3")
+  @@index([stream_id], name: "subject_submission_stream_id_eaac1347")
+  @@index([subject_id], name: "subject_submission_subject_id_fd20acbd")
+}
+
+model subject_submission_selected_lo {
+  id                   Int                @id @default(autoincrement())
+  subjectsubmission_id Int
+  lo_id                Int
+  lo                   lo                 @relation(fields: [lo_id], references: [id])
+  subject_submission   subject_submission @relation(fields: [subjectsubmission_id], references: [id])
+
+  @@unique([subjectsubmission_id, lo_id], name: "subject_submission_selec_subjectsubmission_id_lo__28ea8eb6_uniq")
+  @@index([lo_id], name: "subject_submission_selected_lo_lo_id_5954b7a1")
+  @@index([subjectsubmission_id], name: "subject_submission_selected_lo_subjectsubmission_id_f6bd3bb0")
+}
+
+model submission_summary {
+  id            Int         @id @default(autoincrement())
+  percentage    Int
+  sms_status    Boolean
+  school        Int
+  assessment_id Int?
+  assessment    assessment? @relation(fields: [assessment_id], references: [id])
+
+  @@index([assessment_id], name: "submission_summary_assessment_id_5985453c")
+}
+
+model teacher {
+  id               Int                @id @default(autoincrement())
+  created          DateTime?          @db.Timestamptz(6)
+  updated          DateTime?          @db.Timestamptz(6)
+  user_id          String             @db.Uuid
+  employment       String             @db.VarChar(17)
+  joining_date     DateTime           @db.Date
+  account_status   String             @db.VarChar(10)
+  cadre            String             @db.VarChar(30)
+  designation      String             @db.VarChar(50)
+  school_id        Int?
+  parent_id        Int?
+  teacher          teacher?           @relation("teacherToteacher_parent_id", fields: [parent_id], references: [id])
+  school           school?            @relation(fields: [school_id], references: [id])
+  other_teacher    teacher[]          @relation("teacherToteacher_parent_id")
+  teacher_subjects teacher_subjects[]
+
+  @@index([school_id], name: "server_teacher_school_id_81199ae6")
+  @@index([parent_id], name: "teacher_parent_id_2a1680a7")
+}
+
+model teacher_subjects {
+  id         Int     @id @default(autoincrement())
+  teacher_id Int
+  subject_id Int
+  subject    subject @relation(fields: [subject_id], references: [id])
+  teacher    teacher @relation(fields: [teacher_id], references: [id])
+
+  @@unique([teacher_id, subject_id], name: "server_teacher_subjects_teacher_id_subject_id_3e14a2f9_uniq")
+  @@index([subject_id], name: "server_teacher_subjects_subject_id_9fb2c7a9")
+  @@index([teacher_id], name: "server_teacher_subjects_teacher_id_bd301b11")
+}

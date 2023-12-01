@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "address.json",
+  "type": "object",
+  "title": "The root schema",
+  "description": "The root schema comprises the entire JSON document.",
+  "default": {},
+  "examples": [
+    {
+      "addType": "Account Request Sent",
+      "addressLine1": "PENDING",
+      "addressLine2": "Account Request Sent",
+      "city": "PENDING",
+      "district": "Account Request Sent",
+      "state": "Account Request Sent",
+      "zipCode": "Account Request Sent"
+    }
+  ],
+  "required": [
+    "addType",
+    "addressLine1",
+    "addressLine2",
+    "city",
+    "district",
+    "state",
+    "zipCode"
+  ],
+  "properties": {
+    "addType": {
+      "$id": "#/properties/addType",
+      "type": "string",
+      "title": "The addType schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": ["Account Request Sent"]
+    },
+    "addressLine1": {
+      "$id": "#/properties/addressLine1",
+      "type": "string",
+      "title": "The addressLine1 schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": ["PENDING"]
+    },
+    "addressLine2": {
+      "$id": "#/properties/addressLine2",
+      "type": "string",
+      "title": "The addressLine2 schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": ["Account Request Sent"]
+    },
+    "city": {
+      "$id": "#/properties/city",
+      "type": "string",
+      "title": "The city schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": ["PENDING"]
+    },
+    "district": {
+      "$id": "#/properties/district",
+      "type": "string",
+      "title": "The district schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": ["Account Request Sent"]
+    },
+    "state": {
+      "$id": "#/properties/state",
+      "type": "string",
+      "title": "The state schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": ["Account Request Sent"]
+    },
+    "zipCode": {
+      "$id": "#/properties/zipCode",
+      "type": "string",
+      "title": "The zipCode schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": ["Account Request Sent"]
+    }
+  },
+  "additionalProperties": true
+}

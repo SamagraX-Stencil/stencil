@@ -1,0 +1,40 @@
+{
+  "cSpell.words": [
+    "Bhola",
+    "ESAMWAD",
+    "Gupshup",
+    "Meity",
+    "SMSC",
+    "Umang",
+    "artiomtr",
+    "e",
+    "fusionauth",
+    "nestjs",
+    "prebuild",
+    "prismix",
+    "samwad",
+    "signup",
+    "udise",
+    "userid",
+    "uuidv"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true,
+    "source.fixAll.tslint": true,
+    "source.fixAll.stylelint": true
+  },
+  "files.associations": {
+    ".env.sample": "dotenv"
+  },
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    }
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}

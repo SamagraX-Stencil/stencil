@@ -1,0 +1,8 @@
+{
+	"recommendations": [
+		"MS-vsliveshare.vsliveshare",
+        "vscode-icons-team.vscode-icons",
+        "ms-azuretools.vscode-docker",
+		"esbenp.prettier-vscode"
+	]
+}

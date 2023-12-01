@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "education.json",
+  "type": "object",
+  "title": "The root schema",
+  "description": "The root schema comprises the entire JSON document.",
+  "default": {},
+  "examples": [
+    {
+      "name": "The name of educational institution",
+      "degree": "The name of user's highest qualification",
+      "boardOrUniversity": "The name of board or university",
+      "yearOfPassing": 20832221,
+      "courseName": "courseName",
+      "address": {
+        "addType": "Account Request Sent",
+        "addressLine1": "PENDING",
+        "addressLine2": "Account Request Sent",
+        "city": "PENDING",
+        "district": "Account Request Sent",
+        "state": "Account Request Sent",
+        "zipCode": "Account Request Sent"
+      },
+      "percentage": 94.54,
+      "grade": "The name of the user's grade"
+    }
+  ],
+  "required": [
+    "name",
+    "degree",
+    "boardOrUniversity",
+    "yearOfPassing",
+    "courseName",
+    "address",
+    "percentage",
+    "grade"
+  ],
+  "properties": {
+    "name": {
+      "$id": "#/properties/name",
+      "type": "string",
+      "title": "The name schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": ["The name of educational institution"]
+    },
+    "degree": {
+      "$id": "#/properties/degree",
+      "type": "string",
+      "title": "The degree schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": ["The name of user's highest qualification"]
+    },
+    "boardOrUniversity": {
+      "$id": "#/properties/boardOrUniversity",
+      "type": "string",
+      "title": "The boardOrUniversity schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": ["The name of board or university"]
+    },
+    "yearOfPassing": {
+      "$id": "#/properties/yearOfPassing",
+      "type": "integer",
+      "title": "The yearOfPassing schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": 0,
+      "examples": [20832221]
+    },
+    "courseName": {
+      "$id": "#/properties/courseName",
+      "type": "string",
+      "title": "The courseName schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": ["courseName"]
+    },
+    "address": {
+      "$ref": "address.json"
+    },
+    "percentage": {
+      "$id": "#/properties/percentage",
+      "type": "number",
+      "title": "The percentage schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": 0.0,
+      "examples": [94.54]
+    },
+    "grade": {
+      "$id": "#/properties/grade",
+      "type": "string",
+      "title": "The grade schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": ["The name of the user's grade"]
+    }
+  },
+  "additionalProperties": true
+}
