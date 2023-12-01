@@ -1,0 +1,16 @@
+name: NestJS API CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run e2e tests
+        run: docker compose -f docker-compose.ci.yaml --env-file env-example -p ci up --build --exit-code-from api

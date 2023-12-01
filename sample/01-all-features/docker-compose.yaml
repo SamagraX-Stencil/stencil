@@ -1,0 +1,76 @@
+services:
+  fusionauth:
+    image: fusionauth/fusionauth-app:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/fusionauth
+      DATABASE_ROOT_USERNAME: ${POSTGRES_USER}
+      DATABASE_ROOT_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      FUSIONAUTH_APP_MEMORY: ${FUSIONAUTH_APP_MEMORY}
+      FUSIONAUTH_APP_RUNTIME_MODE: ${FUSIONAUTH_APP_RUNTIME_MODE}
+      FUSIONAUTH_APP_URL: http://fusionauth:9011
+      FUSIONAUTH_APP_KICKSTART_FILE: /usr/local/fusionauth/kickstarts/kickstart.json
+    env_file:
+      - ./env-example
+    volumes:
+      - fa-config:/usr/local/fusionauth/config
+      - ./kickstart:/usr/local/fusionauth/kickstarts
+    networks:
+      - default
+    restart: unless-stopped
+    ports:
+      - 9011:9011
+
+  postgres:
+    image: postgres:15.3-alpine
+    ports:
+      - ${DATABASE_PORT}:5432
+    volumes:
+      - ./.data/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  shadow-postgres:
+    image: postgres:15.3-alpine
+    ports:
+      - ${SHADOW_DATABASE_PORT}:5432
+    volumes:
+      - ./.data/shadow-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${SHADOW_DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${SHADOW_DATABASE_PASSWORD}
+      POSTGRES_DB: ${SHADOW_DATABASE_NAME}
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 4000:4000
+  
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1
+    volumes: 
+      - cache:/data
+
+volumes:
+  cache:
+    driver: local
+  fa-config:
+networks:
+  default:

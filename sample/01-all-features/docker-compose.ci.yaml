@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:15.3-alpine
+    expose:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+
+  shadow-postgres:
+    image: postgres:15.3-alpine
+    expose:
+      - 5431:5432
+    environment:
+      POSTGRES_USER: ${SHADOW_DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${SHADOW_DATABASE_PASSWORD}
+      POSTGRES_DB: ${SHADOW_DATABASE_NAME}
+
+  api:
+    build:
+      context: .
+      dockerfile: e2e.Dockerfile
