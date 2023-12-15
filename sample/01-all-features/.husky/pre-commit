@@ -1,7 +1,21 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Function to prompt for renaming non-compliant files
+prompt_rename() {
+  echo "Error: Committing non-compliant CSV/JSON files is not allowed. Please rename the files using the 'stencil.{name}.json/csv' format."
+  echo "Aborting commit."
+  exit 1
+}
+
+# Check each staged file
+for file in $(git diff --staged --name-only); do
+  # Check if the file is a CSV or JSON and follows the specified format
+  if [ "$(echo "$file" | grep -E '\.csv$|\.json$')" ] && ! [[ "$file" =~ ^stencil\..+\.json$|^stencil\..+\.csv$ ]]; then
+    prompt_rename
+  fi
+done
+
+# Run linting or other pre-commit tasks
 npm run lint
 docker compose -f docker-compose.ci.yaml --env-file env-example -p ci up --build --exit-code-from api
-# npm test
-# npm test:e2e -- --runInBank --passWithNoTests
