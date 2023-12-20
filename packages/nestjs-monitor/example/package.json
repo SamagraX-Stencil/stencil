@@ -1,5 +1,5 @@
 {
-  "name": "@techsavvyash/nestjs-monitor",
+  "name": "@samagra-x/nestjs-monitor",
   "version": "0.0.4",
   "description": "Prometheus and Grafana based monitoring setup for NestJS Apps",
   "author": "Team SamagraX (https://github.com/Samagra-Development)",

@@ -18,7 +18,7 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot(),
     PrometheusModule.register({
       defaultMetrics: {
-        enabled: false,
+        enabled: true,
       },
     }),
   ],
