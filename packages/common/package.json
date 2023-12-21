@@ -1,6 +1,6 @@
 {
   "name": "@samagra-x/stencil",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Stencil - An opinionated backend framework for NodeJS based on NestJS",
   "author": "Yash Mittal & Team SamagraX",
   "license": "MIT",
@@ -15,8 +15,11 @@
   },
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "nest build",
+    "build": "tsc --project tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -62,7 +65,7 @@
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.1.3"
+    "typescript": "^5.3.3"
   },
   "jest": {
     "moduleFileExtensions": [
