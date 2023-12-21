@@ -35,19 +35,19 @@ export class ResponseFormatInterceptor implements NestInterceptor {
         // console.log('error: ', error);
         return throwError(
           () =>
-            // new CustomResponseException(status, {}, [this.formatError(error)]),
-            new HttpException(
-              HttpException.createBody({
-                statuscode: status,
-                data: [
-                  {
-                    data: {},
-                    errors: [this.formatError(error)],
-                  },
-                ],
-              }),
-              status,
-            ),
+            new CustomResponseException(status, {}, [this.formatError(error)]),
+          // new HttpException(
+          //   HttpException.createBody({
+          //     statuscode: status,
+          //     data: [
+          //       {
+          //         data: {},
+          //         errors: [this.formatError(error)],
+          //       },
+          //     ],
+          //   }),
+          //   status,
+          // ),
         );
       }),
     );
