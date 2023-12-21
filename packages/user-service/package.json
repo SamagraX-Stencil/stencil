@@ -1,6 +1,6 @@
 {
-  "name": "@techsavvyash/user-service",
-  "version": "0.0.2",
+  "name": "@samagra-x/user-service",
+  "version": "0.0.1",
   "description": "APIs for user management in samagra microservices.",
   "author": "Team SamagraX (https://github.com/Samagra-Development)",
   "private": false,
@@ -10,6 +10,11 @@
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samagra-development/user-service.git"
+  },
+  "homepage": "https://github.com/SamagraX-stencil/stencil",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "tsc --project tsconfig.build.json",
