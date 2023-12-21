@@ -1,0 +1,172 @@
+services:
+
+# Fusion Auth
+
+  fa-search:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    env_file:
+      - .env
+    environment:
+      cluster.name: fusionauth
+      bootstrap.memory_lock: "true"
+      discovery.type: single-node
+      ES_JAVA_OPTS: ${ES_JAVA_OPTS}
+    healthcheck:
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - fa-es-data:/usr/share/elasticsearch/data
+
+  fusionauth:
+    image: fusionauth/fusionauth-app:latest
+    restart: unless-stopped
+    depends_on:
+      - fa-db
+      - fa-search
+    environment:
+      DATABASE_URL: jdbc:postgresql://fa-db:${FUSIONAUTH_POSTGRES_PORT}/fusionauth
+      DATABASE_ROOT_USERNAME: ${FUSIONAUTH_POSTGRES_USER}
+      DATABASE_ROOT_PASSWORD: ${FUSIONAUTH_POSTGRES_PASSWORD}
+      DATABASE_USERNAME: ${FUSIONAUTH_DATABASE_USER}
+      DATABASE_PASSWORD: ${FUSIONAUTH_DATABASE_USERNAME}
+      FUSIONAUTH_API_KEY: ${FUSIONAUTH_API_KEY}
+      FUSIONAUTH_ADMIN_EMAIL: ${FUSIONAUTH_ADMIN_EMAIL}
+      FUSIONAUTH_ADMIN_PASSWORD: ${FUSIONAUTH_ADMIN_PASSWORD}
+      FUSIONAUTH_APPLICATION_ID: ${FUSIONAUTH_APPLICATION_ID}
+      FUSIONAUTH_CLIENT_SECRET: ${FUSIONAUTH_CLIENT_SECRET}
+      FUSIONAUTH_APP_MEMORY: ${FUSIONAUTH_APP_MEMORY}
+      FUSIONAUTH_APP_RUNTIME_MODE: development
+      FUSIONAUTH_APP_URL: http://fusionauth:9011
+      SEARCH_SERVERS: http://fa-search:9200
+      SEARCH_TYPE: elasticsearch
+      FUSIONAUTH_APP_KICKSTART_FILE: ${FUSIONAUTH_APP_KICKSTART_FILE}
+    ports:
+      - 9011:9011
+    volumes:
+      - fa-config:/usr/local/fusionauth/config
+      - ./kickstart:/usr/local/fusionauth/kickstart
+
+  fa-db:
+    image: postgres:12
+    restart: always
+    environment:
+      - POSTGRES_USER=${FUSIONAUTH_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${FUSIONAUTH_POSTGRES_PASSWORD}
+    volumes:
+      - ./data/pgdata-fa-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:15.3-alpine
+    ports:
+      - ${DATABASE_PORT}:5432
+    volumes:
+      - ./.data/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  shadow-postgres:
+    image: postgres:15.3-alpine
+    ports:
+      - ${SHADOW_DATABASE_PORT}:5432
+    volumes:
+      - ./.data/shadow-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${SHADOW_DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${SHADOW_DATABASE_PASSWORD}
+      POSTGRES_DB: ${SHADOW_DATABASE_NAME}
+
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1
+    volumes:
+      - cache:/data
+  
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 7889:3000
+    volumes:
+      - grafana:/var/lib/grafana
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  nodeexporter:
+    image: prom/node-exporter:v1.6.1
+    container_name: nodeexporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+    labels:
+      org.label-schema.group: "monitoring"
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.1
+    container_name: cadvisor
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+    labels:
+      org.label-schema.group: "monitoring"
+
+networks:
+  elk:
+    driver: bridge
+  default:
+
+volumes:
+  fa-config:
+  grafana:
+  prometheus_data:
+  fa-es-data:
+  cache:
+    driver: local
