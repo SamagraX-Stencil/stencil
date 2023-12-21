@@ -8,6 +8,11 @@ An opinionated nestjs monitoring setup with Prometheus and Grafana.
 This project aims to create a `NestJS` interceptor to monitor the `response times` of different APIs in your `NestJS` app. Along with support for dynamic creation of Grafana Panels for each instance of the interceptor used in your app.
 </div>
 
+
+# THIS PACKAGE IS DEPRICATED AND HAS BEEN MOVE TO `packages/common`.
+
+
+
 ## Usage
 
 The usage of this interceptor needs you to have a the following services running:
