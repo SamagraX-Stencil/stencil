@@ -1,6 +1,6 @@
 {
   "name": "@samagra-x/stencil",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Stencil - An opinionated backend framework for NodeJS based on NestJS",
   "author": "Yash Mittal (@techsavvyash) & Team SamagraX",
   "license": "MIT",
@@ -41,6 +41,7 @@
     "@temporalio/worker": "^1.8.6",
     "cache-manager": "^5.2.4",
     "cache-manager-redis-store": "2",
+    "nestjs-temporal": "^2.0.1",
     "prom-client": "^15.1.0",
     "redis": "^4.6.10",
     "reflect-metadata": "^0.1.13",

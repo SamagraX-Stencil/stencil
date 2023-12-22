@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { TemporalWorkflowService } from './temporal.service';
+// import { TemporalWorkflowService } from './temporal.service';
+import { TemporalWorkflowService } from '@samagra-x/stencil';
 import { exampleWorkflow } from './temporal/workflows';
 
 @Controller()
@@ -16,8 +17,8 @@ export class AppController {
       const result = await this.temporalWorkflowService.startWorkflow(
         exampleWorkflow,
         'default',
-        ['app-controller'],
-        'app-contoller-workflow-id',
+        ['temporal-package-test-controller'],
+        'temporal-package-test-workflow-id' + Date.now(),
       );
       return `Workflow started, result: ${result}`;
     } catch (error) {

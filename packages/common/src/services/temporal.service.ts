@@ -1,16 +1,30 @@
 import { Injectable } from '@nestjs/common';
-import { Connection, WorkflowClient } from '@temporalio/client';
+import { WorkflowClient } from '@temporalio/client';
 
 @Injectable()
-export class TemporalService {
-  private workflowClient: WorkflowClient;
+export class TemporalWorkflowService {
+  private workflowClient: any;
 
   constructor() {
-    const connection = new Connection();
-    this.workflowClient = new WorkflowClient(connection.service);
+    this.workflowClient = new WorkflowClient();
   }
 
-  getClient(): WorkflowClient {
-    return this.workflowClient;
+  public async startWorkflow(
+    workflow: any,
+    taskQueue?: any,
+    args?: any,
+    workflowId?: string,
+  ) {
+    // const workflowClient = new WorkflowClient();
+    const flow = await this.workflowClient.start(workflow, {
+      taskQueue: 'default',
+      // type inference works! args: [name: string]
+      args: args || ['Temporal'],
+      // in practice, use a meaningful business ID, like customerId or transactionId
+      workflowId: workflowId || 'workflow-' + new Date().valueOf(),
+    });
+    const handle = this.workflowClient.getHandle(flow.workflowId);
+    const result = await handle.result();
+    return result;
   }
 }
