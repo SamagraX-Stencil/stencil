@@ -32,7 +32,7 @@
     "test:dev": "jest --watch --coverage --runInBand",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prepare": "husky install"
+    "prepare": "cd ../.. && husky install packages/user-service/.husky"
   },
   "dependencies": {
     "@fusionauth/typescript-client": "^1.43.0",
@@ -84,7 +84,7 @@
     "eslint": "^7.30.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
-    "husky": "^7.0.0",
+    "husky": "7",
     "jest": "27.0.6",
     "prettier": "^2.3.2",
     "prisma": "2.28.0",
