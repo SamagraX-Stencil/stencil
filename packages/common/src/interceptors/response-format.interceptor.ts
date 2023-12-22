@@ -6,26 +6,9 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { Observable, throwError } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-// import { CustomResponseException } from '../exceptions/custom-response.exception';
 
-class CustomResponseException extends HttpException {
-  constructor(status: HttpStatus, data: any, errors: any[] | null) {
-    super(
-      {
-        statuscode: status,
-        data: [
-          {
-            data: data,
-            errors: errors,
-          },
-        ],
-      },
-      status,
-    );
-  }
-}
 @Injectable()
 export class ResponseFormatInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
@@ -47,29 +30,14 @@ export class ResponseFormatInterceptor implements NestInterceptor {
           error instanceof HttpException
             ? error.getStatus()
             : HttpStatus.INTERNAL_SERVER_ERROR;
-        console.log('error: ', error);
 
-        // return {
-        //   statuscode: status,
-        //   data: {},
-        //   errors: [this.formatError(error)],
-        // };
-
-        return throwError(
-          () =>
-            new HttpException(
-              HttpException.createBody({
-                statuscode: status,
-                data: [
-                  {
-                    data: {},
-                    errors: [this.formatError(error)],
-                  },
-                ],
-              }),
-              status,
-            ),
-        );
+        return of([
+          {
+            statuscode: status,
+            data: {},
+            errors: [this.formatError(error)],
+          },
+        ]);
       }),
     );
   }
