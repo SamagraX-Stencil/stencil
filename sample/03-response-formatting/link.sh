@@ -1,0 +1,1 @@
+cd ../../packages/common && rm -r dist/ && yarn build && npm link && cd ../../sample/03-response-formatting && npm link @samagra-x/stencil

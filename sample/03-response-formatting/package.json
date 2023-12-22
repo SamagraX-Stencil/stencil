@@ -1,25 +1,12 @@
 {
-  "name": "@samagra-x/stencil",
-  "version": "0.0.3",
-  "description": "Stencil - An opinionated backend framework for NodeJS based on NestJS",
-  "author": "Yash Mittal (@techsavvyash) & Team SamagraX",
-  "license": "MIT",
-  "homepage": "https://stencil.samagra.io",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/samagrax-stencil/stencil.git",
-    "directory": "packages/common"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "main": "./dist/index.js",
-  "typings": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "name": "03-response-formatting",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
   "scripts": {
-    "build": "tsc --project tsconfig.build.json",
+    "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -33,14 +20,11 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs/cache-manager": "^2.1.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
-    "cache-manager": "^5.2.4",
-    "cache-manager-redis-store": "2",
-    "prom-client": "^15.1.0",
-    "redis": "^4.6.10",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1"
   },
@@ -65,7 +49,7 @@
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.1.3"
   },
   "jest": {
     "moduleFileExtensions": [
