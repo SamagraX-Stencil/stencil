@@ -8,11 +8,16 @@ Stencil is an opinionated backend framework based on [NestJS](https://nestjs.com
   - Don't deal with the hassle of setting up a prisma instance, start writing schemas directly.
 - [User-Service](https://github.com/Samagra-Development/user-service)
   - User Management is just as simple as calling a decorator over your API Controller.
-- [NestJS Monitor](https://github.com/ChakshuGautam/nestjs-monitor)
-  - Never worry about creating grafana dashboards by hand again.
+- [Monitoring](https://github.com/ChakshuGautam/nestjs-monitor)
+  - Get Prometheus and Grafana dashboards setup right out of the box with beautifully a programatically generated dashboard monitoring your API response times.
 - [Temporal](https://temporal.io)
   - Focus on implementing the activity and workflow we have got the setup covered.
+- [Response formatting]
+  - Enfore response format standards throughout the app with a single interceptor
+- [File Uploads]
+  - Require handling file uploads and downloads via your service? Get a service setup right out of the box.
 
+**If you have request for a specific tool to be setup automatically, please open a issue ticket and we'll try to get it added at the earliest.**
 
 ## Getting started
 
@@ -20,7 +25,7 @@ Stencil is an opinionated backend framework based on [NestJS](https://nestjs.com
 
 1. Install the stencil-cli
 ```bash
-npm i -g @soorajk1/stencil-cli
+npm i -g @samagra-x/stencil-cli
 ```
 
 2. To scaffold a new project run this:
