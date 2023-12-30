@@ -19,5 +19,5 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: e2e.Dockerfile
+      context: ..
+      dockerfile: Dockerfiles/e2e.Dockerfile

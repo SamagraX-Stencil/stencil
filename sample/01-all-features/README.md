@@ -45,10 +45,10 @@ Microservice boilerplate for SamagraX
 ## Quick run
 
 ```bash
-git clone --depth 1 https://github.com/brocoders/nestjs-boilerplate.git my-app
-cd my-app/
-cp env-example .env
-docker compose up -d
+git clone https://github.com/SamagraX-Stencil/stencil.git stencil
+cd stencil/sample//01-all-features
+cp env/env-example .env
+docker compose -f docker-compose/docker-compose.yaml up -d
 ```
 
 For check status run
