@@ -18,4 +18,4 @@ done
 
 # Run linting or other pre-commit tasks
 npm run lint
-docker compose -f docker-compose.ci.yaml --env-file env-example -p ci up --build --exit-code-from api
+docker compose -f ./docker-compose/docker-compose.ci.yaml --env-file env-example -p ci up --build --exit-code-from api

@@ -15,7 +15,7 @@ services:
       FUSIONAUTH_APP_URL: http://fusionauth:9011
       FUSIONAUTH_APP_KICKSTART_FILE: /usr/local/fusionauth/kickstarts/kickstart.json
     env_file:
-      - ./env-example
+      - ../env/env-example
     volumes:
       - fa-config:/usr/local/fusionauth/config
       - ./kickstart:/usr/local/fusionauth/kickstarts
@@ -54,8 +54,8 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: Dockerfiles/Dockerfile
     ports:
       - 4000:4000
   

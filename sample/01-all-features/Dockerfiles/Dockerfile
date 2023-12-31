@@ -8,14 +8,14 @@ RUN cd /tmp/app && npm install
 
 COPY . /usr/src/app
 RUN cp -a /tmp/app/node_modules /usr/src/app
-COPY ./wait-for-it.sh /opt/wait-for-it.sh
-COPY ./startup.ci.sh /opt/startup.ci.sh
+COPY ./scripts/wait-for-it.sh /opt/wait-for-it.sh
+COPY ./scripts/startup.dev.sh /opt/startup.dev.sh
 RUN sed -i 's/\r//g' /opt/wait-for-it.sh
-RUN sed -i 's/\r//g' /opt/startup.ci.sh
+RUN sed -i 's/\r//g' /opt/startup.dev.sh
 
 WORKDIR /usr/src/app
-RUN cp env-example .env
+RUN cp ./env/env-example .env
 RUN npx prisma generate
 RUN npm run build
 
-CMD ["/opt/startup.ci.sh"]
+CMD ["/opt/startup.dev.sh"]
