@@ -1,6 +1,6 @@
 {
   "name": "@samagra-x/stencil",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Stencil - An opinionated backend framework for NodeJS based on NestJS",
   "author": "Yash Mittal (@techsavvyash) & Team SamagraX",
   "license": "MIT",
