@@ -3,7 +3,7 @@ import * as winston from 'winston';
 import { WinstonTransport as AxiomTransport } from '@axiomhq/axiom-node';
 
 @Injectable()
-export class CustomLogger extends Logger {
+export class StencilLogger extends Logger {
   private static formatTimestamp(date: Date): string {
     const hours = date.getHours();
     const hours12 = hours % 12 || 12;
@@ -29,10 +29,10 @@ export class CustomLogger extends Logger {
   }
 
   private formatLog(level, params) {
-    const timestamp = CustomLogger.formatTimestamp(new Date());
+    const timestamp = StencilLogger.formatTimestamp(new Date());
     return {
       level,
-      message: CustomLogger.combineLogs(params),
+      message: StencilLogger.combineLogs(params),
       service: this.serviceName,
       timestamp,
     };
