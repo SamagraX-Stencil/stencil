@@ -7,7 +7,7 @@ import { randomStringGenerator } from '@nestjs/common/utils/random-string-genera
 import { S3Client } from '@aws-sdk/client-s3';
 import multerS3 from 'multer-s3';
 import { FilesService } from './files.service';
-import { AllConfigType } from 'src/config/config.type';
+import { AllConfigType } from '../config/config.type';
 
 @Module({
   imports: [
