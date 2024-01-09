@@ -19,6 +19,7 @@ import { AllConfigType } from './config/config.type';
 import { MailerModule } from './mailer/mailer.module';
 import { PrismaService } from './prisma/prisma.service';
 import { user } from '@techsavvyash/user-service';
+import { HealthModule } from './health/health.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -64,6 +65,7 @@ import { user } from '@techsavvyash/user-service';
     MailerModule,
     HomeModule,
     user.UserModule,
+    HealthModule,
   ],
   providers: [PrismaService],
 })
