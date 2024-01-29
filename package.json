@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "Stencil - An opinionated backend framework for NodeJS based on NestJS",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint --max-warnings 0 --config .eslintrc .",
+    "lint:fix": "eslint --max-warnings 0 --config .eslintrc . --fix",
+    "format:fix": "prettier --write \"**/*.{ts,tsx,json}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,json}\""
   },
   "repository": {
     "type": "git",
@@ -18,5 +22,9 @@
   "dependencies": {
     "tsc": "^2.0.4",
     "tslib": "^2.6.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.4"
   }
 }
