@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TemporalModule } from 'nestjs-temporal';
 import * as activities from './temporal/activities';
-// import { TemporalWorkflowService } from './temporal.service';
 import { TemporalWorkflowService } from '@samagra-x/stencil';
 
 @Module({

@@ -37,3 +37,16 @@ During the setup the CLI help you setup all the toolings you want by letting you
 ### Demo
 
 A demo video depicting how to use stencil-cli can be found [here](https://drive.google.com/file/d/1RaafplnJMlfKgYB-WwyfINREjqoRQSLb/view?usp=sharing)
+
+## Local Setup
+1. Clone the repository locally
+```bash
+git clone https://github.com/SamagraX-Stencil/stencil
+```
+
+2. Install root level dependencies
+```bash
+yarn 
+```
+
+3. Navigate to the required directory where you want to hack around and refer directory level READMEs to understand more about the code stored there.
