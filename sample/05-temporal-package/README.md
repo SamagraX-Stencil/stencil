@@ -1,35 +1,135 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
+<p align="left">
+  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@samagra-x/stencil.svg" alt="NPM Downloads" /></a>
 </p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+<p align="left">Stencil is an opinionated <a href="http://nodejs.org" target="_blank">Node.js</a> framework to bootstrap efficient and scalable server-side applications <em>fast</em>. Stencil uses <a href="https://nestjs.com" target="_blank"> NestJS</a> at its core.</p>
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+[Stencil](https://github.com/SamagraX-stencil/stencil) framework TypeScript sample app demonstrating how to use [temporal](https://temporal.io) in your stencil app.
 
 ## Installation
 
 ```bash
 $ yarn install
+```
+
+## Setup dependent services
+
+This examples requires a running temporal server to work. A `docker-compose.yml` file has been provided in the `docker-compose` folder which has been taking from the official docker-compose repository from temporal's github.
+
+Run the below command from the root of the project to start a temporal instance locally to be used in this example.
+
+```bash
+cd docker-compose && docker-compose up -d
+```
+
+## Setting up the environment
+
+```bash
+cp env-example .env
+```
+
+## Setting up temporal
+
+> Manually
+
+To manually setup the temporal in your stencil app follow the following steps. 
+
+1. Create two folders named `temporal/actitives` and `temporal/workflows` at the root of your project. These folders will server as the home for your activities and workflows.
+
+```bash
+mkdir -p temporal/actitives temporal/workflow
+```
+
+2. For this example we are adding the following sample activity and workflow
+
+```typescript
+// temporal/activities/example.activity.ts
+export async function exampleActivity(name: string): Promise<string> {
+  // Implement the activity logic here
+  return await `Hello, ${name}!`;
+}
+```
+
+```typescript
+// temporal/workflows/example.workflow.ts
+import { proxyActivities, sleep } from '@temporalio/workflow';
+
+// Your activities interface here
+interface Activities {
+  // Define activity function signatures here
+  exampleActivity(name: string): Promise<string>;
+}
+
+const activities = proxyActivities<Activities>({
+  startToCloseTimeout: '1 minute',
+});
+
+export async function exampleWorkflow(name: string): Promise<string> {
+  await sleep(100000);
+  return await activities.exampleActivity(name);
+}
+```
+
+3. Install the `nestjs-temporal` package
+```bash
+yarn add nestjs-temporal
+```
+
+4. Register the temporal worker, client, `TemporalWorkflowService` and your activities in the module file as follows:
+
+```typescript
+// other imports 
+import { TemporalModule } from 'nestjs-temporal';
+import * as activities from './temporal/activities';
+import { TemporalWorkflowService } from '@samagra-x/stencil';
+
+@Module({
+  imports: [
+    TemporalModule.registerWorker({
+      workerOptions: {
+        namespace: 'default',
+        taskQueue: 'default',
+        workflowsPath: require.resolve('./temporal/workflows/example.workflow'),
+        activities: {
+          activities,
+        },
+      },
+    }),
+    TemporalModule.registerClient(),
+  ],
+  controllers: [],
+  providers: [TemporalWorkflowService],
+})
+export class AppModule {}
+```
+
+5. Dependency inject the `TemporalWorkflowService` whereever your want to use your workflows in the app. For example we have modified the `app.controller.ts`'s `getHello` function as follows:
+
+```typescript
+@Get()
+async getHello() {
+  try {
+    const result = await this.temporalWorkflowService.startWorkflow(
+      exampleWorkflow,
+      'default',
+      ['temporal-package-test-controller'],
+      'temporal-package-test-workflow-id' + Date.now(),
+    );
+    return `Workflow started, result: ${result}`;
+  } catch (error) {
+    console.error('Error starting workflow', error);
+    throw error;
+  }
+}
+```
+
+> Via the [CLI](https://github.com/SamagraX-stencil/stencil-cli)
+
+To setup temporal automatically via the CLI simply run the following command:
+```bash
+stencil add service-temporal 
 ```
 
 ## Running the app
@@ -58,16 +158,15 @@ $ yarn run test:e2e
 $ yarn run test:cov
 ```
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
 ## Stay in touch
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- Author - [Yash Mittal](https://techsavvyash.dev) and [Team SamagraX](https://github.com/Samagra-Development)
+- Website - [https://stencil.samagra.io](https://stencil.samagra.io/)
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+Stencil and Nest are [MIT licensed](LICENSE).
+
+## Acknowledgements
+
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
