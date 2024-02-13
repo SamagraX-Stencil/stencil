@@ -19,6 +19,13 @@ import { AllConfigType } from './config/config.type';
 import { MailerModule } from './mailer/mailer.module';
 import { PrismaService } from './prisma/prisma.service';
 import { user } from '@techsavvyash/user-service';
+import { HealthModule } from './health/health.module';
+import {
+  POSTGRES_SERVICE,
+  SHADOWPOSTGRES_SERVICE,
+  FUSIONAUTH_SERVICE,
+  REDIS_SERVICE,
+} from './health/health.constants';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -64,6 +71,7 @@ import { user } from '@techsavvyash/user-service';
     MailerModule,
     HomeModule,
     user.UserModule,
+    HealthModule.forRoot([POSTGRES_SERVICE, SHADOWPOSTGRES_SERVICE, FUSIONAUTH_SERVICE, REDIS_SERVICE]),
   ],
   providers: [PrismaService],
 })
