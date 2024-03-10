@@ -1,13 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ResponseTimeInterceptor } from '@samagra-x/stencil';
+import { ResponseTimeInterceptor } from './response.interceptor';
+// import { ResponseTimeInterceptor } from '@samagra-x/stencil';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalInterceptors(
     new ResponseTimeInterceptor(
       'test_global_interceptor',
-      'monitor/grafana/provisioning/dashboards/response_times.json',
+      'http://localhost:7889',
     ),
   );
   await app.listen(3000);
