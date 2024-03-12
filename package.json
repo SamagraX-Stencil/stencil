@@ -4,7 +4,8 @@
   "description": "Stencil - An opinionated backend framework for NodeJS based on NestJS",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  }
+  ,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SamagraX-stencil/stencil.git"
@@ -16,6 +17,7 @@
   },
   "homepage": "https://stenci.samagra.io",
   "dependencies": {
+    "bun": "^1.0.30",
     "tsc": "^2.0.4",
     "tslib": "^2.6.2"
   }
