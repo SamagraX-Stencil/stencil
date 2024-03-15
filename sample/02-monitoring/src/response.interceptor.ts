@@ -41,7 +41,7 @@ export class ResponseTimeInterceptor implements NestInterceptor {
 
     // updating the grafana JSON with the row for this panel
     try {
-      // const fetchDashboardJSON =
+      // check to see if a dashboard titled "Response Times" already exists or not
       const dashboardJSONSearchResp = await getDashboardJSON(
         'glsa_81xg6BnRNIuLvTcgPgplYNvlwa0TieZS_87bbe96a',
         'Response Times',
