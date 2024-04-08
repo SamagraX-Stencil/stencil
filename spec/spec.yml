@@ -1,0 +1,31 @@
+stencil: 0.0.1
+info:
+  description: "General information about the project"
+  type: object
+  properties:
+    project-name: 
+      description: "Name of the stencil project"
+      type: string
+    package-manager:
+      description: "The package manager you want to use with stencil"
+      type: string
+
+tooling:
+  description: "Define the tooling that is required to be setup in the stencil project"
+  type: array
+  values:
+    - prisma
+    - monitoring
+    - temporal
+    - logging
+    - user-service
+    - file-uploads
+    - response-formatting
+
+endpoints:
+  description: "This section contains a valid OpenAPI specification for the endpoints in the stencil project"
+  type: object
+  properties:
+    $ref: openapi-3.0.0
+
+
