@@ -55,6 +55,9 @@ const convertToTypeScript = (prismaModel, prismaModelNames) => {
         if (type === 'int' || type === 'float' || type === 'double') {
           type = 'number';
         }
+        if (type === 'datetime') {
+          type = 'Date';
+        }
         const optional = line.includes('?') ? '?' : '';
         return `${name}${optional}: ${type};`;
       });
