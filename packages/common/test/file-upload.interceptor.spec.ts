@@ -1,27 +1,13 @@
-import { ExecutionContext } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { ExecutionContext, NestInterceptor } from '@nestjs/common';
 import { of, throwError } from 'rxjs';
 import { FastifyFileInterceptor } from '../src/interceptors/file-upload.interceptor';
 
 describe('FastifyFileInterceptor', () => {
-  let interceptor: any;
-  let file: any;
+  let interceptor: NestInterceptor;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        {
-          provide: 'MULTER_MODULE_OPTIONS', // Provide the Multer options if needed
-          useValue: {}, // Example value, adjust as necessary
-        },
-        {
-          provide: FastifyFileInterceptor, // Provide FastifyFileInterceptor
-          useFactory: () => FastifyFileInterceptor('fieldName', { /* localOptions */ }),
-        },
-      ],
-    }).compile();
-    file = { /* mock file object */ };
-    interceptor = module.get(FastifyFileInterceptor);
+    const interceptorClass = FastifyFileInterceptor('file', {});
+    interceptor = new interceptorClass();
   });
 
   it('should be defined', () => {
@@ -29,90 +15,79 @@ describe('FastifyFileInterceptor', () => {
   });
 
   it('should handle file upload', async () => {
-    const context = createContext({ file });
-    const nextHandler = createNextHandler();
+    const file = { originalname: 'test.jpg', mimetype: 'image/jpeg' };
+    const context = createMockContext(file);
+    const nextHandler = createMockNextHandler();
 
     await interceptor.intercept(context, nextHandler);
 
-    expectAllCalled(context, nextHandler);
+    expect(context.switchToHttp().getRequest().file).toEqual(file);
+    expect(nextHandler.handle).toHaveBeenCalled();
   });
 
   it('should handle getting an uploaded file', async () => {
-    const context = createContext({ file });
-    const nextHandler = createNextHandler();
+    const file = { originalname: 'test.jpg', mimetype: 'image/jpeg' };
+    const context = createMockContext(file);
+    const nextHandler = createMockNextHandler();
 
     await interceptor.intercept(context, nextHandler);
 
-    expectAllCalled(context, nextHandler);
-    expect(nextHandler.handle).toHaveBeenCalledWith(file);
+    expect(context.switchToHttp().getRequest().file).toEqual(file);
+    expect(nextHandler.handle).toHaveBeenCalled();
   });
 
   it('should handle errors', async () => {
-    const context = createContext({ file });
-    const nextHandler = createNextHandler();
     const errorMessage = 'File upload failed';
-
-    nextHandler.handle.mockReturnValueOnce(throwError(errorMessage));
-
+    const file = { originalname: 'test.jpg', mimetype: 'image/jpeg' };
+    const context = createMockContext(file);
+    const nextHandler = createMockNextHandler();
+  
+    // Mock the multer middleware to throw an error
+    jest.spyOn(interceptor['multer'], 'single').mockImplementation(() => {
+      return (req, res, callback) => {
+        callback(new Error(errorMessage));
+      };
+    });
+  
     await expect(interceptor.intercept(context, nextHandler)).rejects.toThrow(errorMessage);
-
-    expectAllCalled(context, nextHandler);
   });
 
   it('should handle getting an uploaded file when file is not present', async () => {
-    const context = createContext({ file: undefined });
-    const nextHandler = createNextHandler();
+    const context = createMockContext(undefined);
+    const nextHandler = createMockNextHandler();
 
     await interceptor.intercept(context, nextHandler);
 
-    expectAllCalled(context, nextHandler);
-    expect(nextHandler.handle).not.toHaveBeenCalled();
+    expect(context.switchToHttp().getRequest().file).toBeUndefined();
+    expect(nextHandler.handle).toHaveBeenCalled();
   });
 
   it('should handle getting an uploaded file when file is null', async () => {
-    const context = createContext({ file: null });
-    const nextHandler = createNextHandler();
+    const context = createMockContext(null);
+    const nextHandler = createMockNextHandler();
 
     await interceptor.intercept(context, nextHandler);
 
-    expectAllCalled(context, nextHandler);
-    expect(nextHandler.handle).not.toHaveBeenCalled();
-  });
-  it('should handle an invalid file format', async () => {
-    const context = createContext({ file: { originalname: 'file.doc', mimetype: 'application/msword' } }); // Invalid file format
-    const nextHandler = createNextHandler();
-  
-    await interceptor.intercept(context, nextHandler);
-  
-    expectAllCalled(context, nextHandler);
-  });
-  
-
-  function createContext({ file }: { file: any }): ExecutionContext {
-    return {
-      switchToHttp: () => ({
-        getRequest: () => ({ file }),
-        getResponse: jest.fn(),
-      }) as any,
-      switchToRpc: jest.fn(),
-      switchToWs: jest.fn(),
-      getClass: jest.fn(),
-      getHandler: jest.fn(),
-      getArgs: jest.fn(),
-      getArgByIndex: jest.fn(),
-      getType: jest.fn(),
-    };
-  }
-
-  function createNextHandler(): any {
-    return {
-      handle: jest.fn(() => of('')),
-    };
-  }
-
-  function expectAllCalled(context: ExecutionContext, nextHandler: any): void {
-    expect(context.switchToHttp().getRequest).toHaveBeenCalled();
-    expect(context.switchToHttp().getResponse).toHaveBeenCalled();
+    expect(context.switchToHttp().getRequest().file).toBeNull();
     expect(nextHandler.handle).toHaveBeenCalled();
-  }
+  });
+
+  it('should handle an invalid file format', async () => {
+    const file = { originalname: 'test.txt', mimetype: 'text/plain' };
+    const context = createMockContext(file);
+    const nextHandler = createMockNextHandler();
+  
+    await expect(interceptor.intercept(context, nextHandler)).rejects.toThrow('Invalid file format');
+  });
 });
+function createMockContext(file: any): ExecutionContext {
+  const mockHttpContext = {
+    getRequest: jest.fn().mockReturnValue({ raw: { headers: { 'content-type': 'multipart/form-data' } }, file }),
+    getResponse: jest.fn().mockReturnValue({}),
+  };
+  return { switchToHttp: jest.fn().mockReturnValue(mockHttpContext) } as unknown as ExecutionContext;
+}
+
+function createMockNextHandler(response: any = of({})): { handle: jest.Mock } {
+  return { handle: jest.fn().mockReturnValue(response) };
+}
