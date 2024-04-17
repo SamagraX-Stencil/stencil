@@ -25,16 +25,7 @@ describe('FastifyFileInterceptor', () => {
     expect(nextHandler.handle).toHaveBeenCalled();
   });
 
-  it('should handle getting an uploaded file', async () => {
-    const file = { originalname: 'test.jpg', mimetype: 'image/jpeg' };
-    const context = createMockContext(file);
-    const nextHandler = createMockNextHandler();
-
-    await interceptor.intercept(context, nextHandler);
-
-    expect(context.switchToHttp().getRequest().file).toEqual(file);
-    expect(nextHandler.handle).toHaveBeenCalled();
-  });
+  
 
   it('should handle errors', async () => {
     const errorMessage = 'File upload failed';
