@@ -56,6 +56,27 @@ function getSeparatorAndValidateColumns(text: string, prismaSchemaPath: string) 
 
         if (columnsFound) {
             model = modelName;
+            const editor = vscode.window.activeTextEditor;
+            if (!editor) {
+                return;
+            }
+    
+            const selection = editor.selection;
+            // Highlight matching columns in the editor
+            const decorations: vscode.DecorationOptions[] = [];
+            const textLine = editor.document.lineAt(selection.start.line);
+            const text = textLine.text;
+            const matchingColumns = getColumnNamesFromModel(prismaSchemaPath, model);
+            for (let i = 0; i < matchingColumns.length; i++) {
+                const index = text.indexOf(matchingColumns[i]);
+                if (index !== -1) {
+                    const startPos = textLine.range.start.translate(0, index);
+                    const endPos = startPos.translate(0, matchingColumns[i].length);
+                    decorations.push({ range: new vscode.Range(startPos, endPos), hoverMessage: `Column name match to model ${model}` });
+                }
+            }
+            editor.setDecorations(matchingColumnsDecorationType, decorations);
+
             break;
         }
     }
@@ -63,9 +84,16 @@ function getSeparatorAndValidateColumns(text: string, prismaSchemaPath: string) 
     return model;
 }
 
+let matchingColumnsDecorationType: vscode.TextEditorDecorationType;
+
 export async function activate(context: vscode.ExtensionContext) {
 
-    const disposable = vscode.commands.registerCommand('validator-seeder.validateCsv', () => {
+  matchingColumnsDecorationType = vscode.window.createTextEditorDecorationType({
+    backgroundColor: 'rgba(127, 255, 127, 0.3)',
+    border: '1px solid rgba(127, 255, 127, 0.7)'
+});
+
+    const disposable = vscode.commands.registerCommand('validator-seeder.validateCsv',async () => {
 
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
@@ -88,9 +116,26 @@ export async function activate(context: vscode.ExtensionContext) {
         const selectionRange = new vscode.Range(lineStartPosition, lineEndPosition);
 
         const text = editor.document.getText(selectionRange);
-        const prismaSchemaPath = "add-file-location"; // Specify the path to your Prisma schema file
 
-        const result: string = getSeparatorAndValidateColumns(text, prismaSchemaPath);
+        // Show file picker dialog to select the Prisma schema file
+        const prismaSchemaUri =  await vscode.window.showOpenDialog({
+          canSelectFiles: true,
+          canSelectFolders: false,
+          canSelectMany: false,
+          openLabel: 'Select Prisma Schema File',
+          filters: {
+              'Prisma Schema': ['prisma']
+          }
+        });
+
+        if (!prismaSchemaUri || prismaSchemaUri.length === 0) {
+            vscode.window.showErrorMessage('No Prisma schema file selected');
+            return;
+        }
+
+        const prismaSchemaPath = prismaSchemaUri[0].fsPath;
+
+        const result: string|undefined = getSeparatorAndValidateColumns(text, prismaSchemaPath);
 
         if (result === '') {
             vscode.window.showInformationMessage('Not matched');
@@ -104,4 +149,8 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 }
 
-export function deactivate() { }
+export function deactivate() {
+  if (matchingColumnsDecorationType) {
+    matchingColumnsDecorationType.dispose();
+}
+ }
