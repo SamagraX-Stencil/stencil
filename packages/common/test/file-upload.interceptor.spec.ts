@@ -43,33 +43,22 @@ describe('FastifyFileInterceptor', () => {
     await expect(interceptor.intercept(context, nextHandler)).rejects.toThrow(errorMessage);
   });
 
-  it('should handle getting an uploaded file when file is not present', async () => {
-    const context = createMockContext(undefined);
-    const nextHandler = createMockNextHandler();
 
-    await interceptor.intercept(context, nextHandler);
-
-    expect(context.switchToHttp().getRequest().file).toBeUndefined();
-    expect(nextHandler.handle).toHaveBeenCalled();
-  });
-
-  it('should handle getting an uploaded file when file is null', async () => {
-    const context = createMockContext(null);
-    const nextHandler = createMockNextHandler();
-
-    await interceptor.intercept(context, nextHandler);
-
-    expect(context.switchToHttp().getRequest().file).toBeNull();
-    expect(nextHandler.handle).toHaveBeenCalled();
-  });
-
-  it('should handle an invalid file format', async () => {
-    const file = { originalname: 'test.txt', mimetype: 'text/plain' };
-    const context = createMockContext(file);
+  it('should handle getting an uploaded file when file is not present or null', async () => {
+    const contextWithUndefinedFile = createMockContext(undefined);
+    const contextWithNullFile = createMockContext(null);
     const nextHandler = createMockNextHandler();
   
-    await expect(interceptor.intercept(context, nextHandler)).rejects.toThrow('Invalid file format');
+    await interceptor.intercept(contextWithUndefinedFile, nextHandler);
+    expect(contextWithUndefinedFile.switchToHttp().getRequest().file).toBeUndefined();
+    expect(nextHandler.handle).toHaveBeenCalled();
+  
+    await interceptor.intercept(contextWithNullFile, nextHandler);
+    expect(contextWithNullFile.switchToHttp().getRequest().file).toBeNull();
+    expect(nextHandler.handle).toHaveBeenCalled();
   });
+
+
 });
 function createMockContext(file: any): ExecutionContext {
   const mockHttpContext = {

@@ -27,40 +27,28 @@ export function FastifyFileInterceptor(
       this.multer = (FastifyMulter as any)({ ...options, ...localOptions });
     }
 
-    async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
+    async intercept(
+      context: ExecutionContext,
+      next: CallHandler,
+    ): Promise<Observable<any>> {
       const ctx = context.switchToHttp();
-    
-      try {
-        await new Promise<void>((resolve, reject) =>
-          this.multer.single(fieldName)(
-            ctx.getRequest(),
-            ctx.getResponse(),
-            (error: any) => {
-              if (error) {
-                return reject(error);
-              }
-    
-              const file = ctx.getRequest().file;
-              if (file && !this.isValidFileFormat(file.mimetype)) {
-                return reject(new Error('Invalid file format'));
-              }
-    
-              resolve();
-            },
-          ),
-        );
-    
-        return next.handle();
-      } catch (error) {
-        throw error;
-      }
-    }
-    
-    private isValidFileFormat(mimetype: string): boolean {
-      // Implement your logic to check if the mimetype is a valid file format
-      // For example, you can have an array of allowed formats and check against it
-      const allowedFormats = ['image/jpeg', 'image/png'];
-      return allowedFormats.includes(mimetype);
+
+      await new Promise<void>((resolve, reject) =>
+        this.multer.single(fieldName)(
+          ctx.getRequest(),
+          ctx.getResponse(),
+          (error: any) => {
+            if (error) {
+              // const error = transformException(err);
+              console.log(error);
+              return reject(error);
+            }
+            resolve();
+          },
+        ),
+      );
+
+      return next.handle();
     }
   }
   const Interceptor = mixin(MixinInterceptor);
