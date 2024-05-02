@@ -18,7 +18,11 @@
       {
         "command": "validator-seeder.validateCsv",
         "title": "Validate CSV"
-      }
+      },
+      {
+        "command": "validator-seeder.setPrismaSchemaPath",
+        "title": "Set Prisma Schema Path"
+    }
     ],
     "menus": {
       "editor/context": [

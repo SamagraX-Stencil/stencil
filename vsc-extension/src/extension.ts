@@ -71,6 +71,15 @@ function getSeparatorAndValidateColumns(text: string, prismaSchemaPath: string) 
 let decorationType: vscode.TextEditorDecorationType;
 
 export async function activate(context: vscode.ExtensionContext) {
+    const disposableSetPrismaSchemaPath = vscode.commands.registerCommand('validator-seeder.setPrismaSchemaPath', async () => {
+        const prismaSchemaPath = await vscode.window.showInputBox({
+            prompt: "Enter the path to your Prisma schema file"
+        });
+        if (prismaSchemaPath) {
+            vscode.workspace.getConfiguration().update('validator-seeder.prismaSchemaPath', prismaSchemaPath, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage('Prisma schema path has been set');
+        }
+    });
 
     const disposable = vscode.commands.registerCommand('validator-seeder.validateCsv', () => {
 
@@ -133,7 +142,7 @@ export async function activate(context: vscode.ExtensionContext) {
         
     });
 
-    context.subscriptions.push(disposable);
+    context.subscriptions.push(disposable,disposableSetPrismaSchemaPath);
 }
 
 export function deactivate() { 
