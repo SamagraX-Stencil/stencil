@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 //  
 
+let prismaSchemaPath: string | undefined;
+
 function getPrismaModels(prismaSchemaPath: string): string[] {
     try {
         const schemaContent = fs.readFileSync(prismaSchemaPath, 'utf-8');
@@ -38,32 +40,46 @@ function getSeparatorAndValidateColumns(text: string, prismaSchemaPath: string) 
     const lines = text.split(/\r?\n/);
     let detectedSeparator = "";
     let model = "";
+    let unexpectedColumns: string[] = [];
 
     const modelNames = getPrismaModels(prismaSchemaPath);
     if (modelNames.length === 0) {
         console.error('No models found in Prisma schema');
-        return detectedSeparator;
+        return { model: "", unmatchedColumns: [] };
     }
 
     for (const modelName of modelNames) {
         const firstLine = lines[0].trim();
         const columnNames = firstLine.split(possibleSeparators[0]);
-        const columnsFound = (() => {
-            const expectedColumnNames = getColumnNamesFromModel(prismaSchemaPath, modelName);
-            return columnNames.length === expectedColumnNames.length &&
-                expectedColumnNames.every((value, index) => columnNames.includes(value));
-        })();
+        const expectedColumnNames = getColumnNamesFromModel(prismaSchemaPath, modelName);
 
-        if (columnsFound) {
+        if (columnNames.length === expectedColumnNames.length &&
+            expectedColumnNames.every((value, index) => columnNames.includes(value))) {
             model = modelName;
+        } else {
+            unexpectedColumns = columnNames.filter(column => !expectedColumnNames.includes(column));
+        }
+
+        if (model !== "" || unexpectedColumns.length > 0) {
             break;
         }
     }
 
-    return model;
+    return { model,  unexpectedColumns};
 }
 
+let decorationType: vscode.TextEditorDecorationType;
+
 export async function activate(context: vscode.ExtensionContext) {
+    const disposableSetPrismaSchemaPath = vscode.commands.registerCommand('validator-seeder.setPrismaSchemaPath', async () => {
+        const prismaSchemaPath = await vscode.window.showInputBox({
+            prompt: "Enter the path to your Prisma schema file"
+        });
+        if (prismaSchemaPath) {
+            vscode.workspace.getConfiguration().update('validator-seeder.prismaSchemaPath', prismaSchemaPath, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage('Prisma schema path has been set');
+        }
+    });
 
     const disposable = vscode.commands.registerCommand('validator-seeder.validateCsv', () => {
 
@@ -88,20 +104,49 @@ export async function activate(context: vscode.ExtensionContext) {
         const selectionRange = new vscode.Range(lineStartPosition, lineEndPosition);
 
         const text = editor.document.getText(selectionRange);
-        const prismaSchemaPath = "add-file-location"; // Specify the path to your Prisma schema file
-
-        const result: string = getSeparatorAndValidateColumns(text, prismaSchemaPath);
-
-        if (result === '') {
-            vscode.window.showInformationMessage('Not matched');
+        // const prismaSchemaPath = "E:\\opensource\\stencil\\vsc-extension\\prisma\\schema.prisma"; // Specify the path to your Prisma schema file
+        prismaSchemaPath = vscode.workspace.getConfiguration().get('validator-seeder.prismaSchemaPath');
+        if (!prismaSchemaPath) {
+            vscode.window.showInformationMessage('Prisma schema path is not configured');
             return;
         }
 
-        vscode.window.showInformationMessage(`Column name match to model ${result}`);
+        const { model, unexpectedColumns } = getSeparatorAndValidateColumns(text, prismaSchemaPath);
 
+
+     decorationType = vscode.window.createTextEditorDecorationType({
+            backgroundColor: 'red',
+            color: 'white'
+        });
+
+        if (unexpectedColumns && unexpectedColumns.length > 0) {
+            const decorations: vscode.DecorationOptions[] = [];
+            unexpectedColumns.forEach(column => {
+                const columnIndex = text.indexOf(column);
+                if (columnIndex !== -1) {
+                    const startPos = editor.document.positionAt(columnIndex);
+                    const endPos = editor.document.positionAt(columnIndex + column.length);
+                    const range = new vscode.Range(startPos, endPos);
+                    decorations.push({ range, hoverMessage: 'Unexpected column' });
+                }
+            });
+            editor.setDecorations(decorationType, decorations);
+            vscode.window.showInformationMessage(`Highlighted unexpected columns in red`);
+        } else if (model === '') {
+            editor.setDecorations(decorationType, []);
+            vscode.window.showInformationMessage('Not matched');
+        } else {
+            editor.setDecorations(decorationType, []);
+            vscode.window.showInformationMessage(`Column name match to model ${model}`);
+        }
+        
     });
 
-    context.subscriptions.push(disposable);
+    context.subscriptions.push(disposable,disposableSetPrismaSchemaPath);
 }
 
-export function deactivate() { }
+export function deactivate() { 
+    if (decorationType) {
+        decorationType.dispose();
+    }
+}
