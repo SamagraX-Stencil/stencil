@@ -42,4 +42,4 @@ function generateTypes(dmmf) {
 const typescriptTypes = generateTypes(dmmf);
 
 // Write TypeScript types to a file
-fs.writeFileSync('./prismaTypes.ts', typescriptTypes);
+fs.writeFileSync('./generic/generic.model.ts', typescriptTypes);
