@@ -1,37 +1,41 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, Res } from "@nestjs/common";
-import { Request, Response } from "express";
+import { FastifyRequest, FastifyReply } from 'fastify';
+import { Controller, Param, Body, Get, Post, Put, Delete } from '@nestjs/common';
 
 export class GenericController<T extends { id: number }> {
   constructor(private readonly service: any) {}
 
   @Get()
-  async getAll(@Req() request: Request, @Res() response: Response): Promise<any> {
+  async getAll(request: FastifyRequest, reply: FastifyReply): Promise<any> {
     const result = await this.service.getAll();
-    return response.status(200).json({
-      status: "Ok!",
-      message: "Successfully fetch data!",
-      result: result,
+    reply.code(200).send({
+      status: 'Ok!',
+      message: 'Successfully fetch data!',
+      result,
     });
   }
 
   @Post()
-  async create(@Body() postData: T): Promise<T> {
+  async create(request: FastifyRequest, reply: FastifyReply): Promise<any> {
+    const postData: T = request.body;
     return this.service.create(postData);
   }
 
   @Get(':id')
-  async getById(@Param('id') id: number): Promise<T | null> {
+  async getById(request: FastifyRequest, reply: FastifyReply): Promise<T | null> {
+    const id: number = parseInt(request.params.id, 10);
     return this.service.getById(id);
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: number): Promise<T> {
+  async delete(request: FastifyRequest, reply: FastifyReply): Promise<T> {
+    const id: number = parseInt(request.params.id, 10);
     return this.service.delete(id);
   }
 
   @Put(':id')
-  async update(@Param('id') id: number, @Body() data: T): Promise<T> {
+  async update(request: FastifyRequest, reply: FastifyReply): Promise<T> {
+    const id: number = parseInt(request.params.id, 10);
+    const data: T = request.body;
     return this.service.update(id, data);
   }
 }
-

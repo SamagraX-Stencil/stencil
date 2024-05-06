@@ -1,90 +1,45 @@
-const fs = require('fs');
+import * as fs from 'fs';
+import pkg from '@prisma/internals';
+const { getDMMF } = pkg;
 
-const schemaFilePath = '../prisma/schema.prisma';
-const outputFilePath = './generic/generic.model.ts';
+const getJSON = async () => {
+  const datamodel = fs.readFileSync('../prisma/schema.prisma', 'utf-8');
+  // console.log(datamodel)
+  const dmmf = await getDMMF({
+    datamodel,
+  });
+  fs.writeFileSync('./dmmf.json', JSON.stringify(dmmf, null, 2));
+  // console.log(dmmf)
+};
 
-const extractModel = (schemaContent) => {
-  const startPattern = 'model';
-  const endPattern = '}';
-  const models = [];
-  const modelNames = [];
+(async () => await getJSON())();
 
-  let startIndex = schemaContent.indexOf(startPattern);
+// Read DMMF JSON file
+const dmmfJson = fs.readFileSync('./dmmf.json', 'utf-8');
+const dmmf = JSON.parse(dmmfJson);
 
-  while (startIndex !== -1) {
-    const modelNameStartIndex = startIndex + startPattern.length;
-    const modelNameEndIndex = schemaContent.indexOf('{', modelNameStartIndex);
+// Generate TypeScript types from DMMF
+function generateTypes(dmmf) {
+  let typescriptTypes = '';
 
-    if (modelNameEndIndex !== -1) {
-      const modelName = schemaContent.substring(modelNameStartIndex, modelNameEndIndex).trim();
-      modelNames.push(modelName);
+  // Iterate over each model in the DMMF
+  for (const model of dmmf.datamodel.models) {
+    typescriptTypes += `interface ${model.name} {\n`;
+
+    // Iterate over each field in the model
+    for (const field of model.fields) {
+      // For simplicity, we assume all fields are optional
+      typescriptTypes += `  ${field.name}?: ${field.type};\n`;
     }
 
-    const endIndex = schemaContent.indexOf(endPattern, startIndex + startPattern.length);
-
-    if (endIndex !== -1) {
-      const bookModel = schemaContent.substring(startIndex + startPattern.length, endIndex);
-      models.push(bookModel);
-
-      // Find the next occurrence of 'model'
-      startIndex = schemaContent.indexOf(startPattern, endIndex);
-    } else {
-      break;
-    }
-  }
-  return {
-    models: models.length > 0 ? models : null,
-    modelNames: modelNames.length > 0 ? modelNames : null,
-  };
-};
-
-const convertToTypeScript = (prismaModel, prismaModelNames) => {
-  const length = prismaModel.length;
-  let tsCode = '';
-  tsCode += 'import { Prisma } from "@prisma/client";\n\n';
-
-  for (let i = 0; i < length; i++) {
-    const model = prismaModel[i];
-    const lines = model.split('\n');
-    const properties = lines
-      .filter(line => line.trim().length > 0 && !line.includes('{') && !line.includes('model'))
-      .map(line => {
-        const parts = line.trim().split(' ');
-        const name = parts[0];
-        let type = parts[1].replace('?', '').toLowerCase() || 'any';
-        if (type === 'int' || type === 'float' || type === 'double') {
-          type = 'number';
-        }
-        if (type === 'datetime') {
-          type = 'Date';
-        }
-        const optional = line.includes('?') ? '?' : '';
-        return `${name}${optional}: ${type};`;
-      });
-
-    // tsCode += `model ${prismaModelNames[i]} {\n  ${properties.join('\n  ')}\n}\n\n`;
-    tsCode += `export class ${prismaModelNames[i]} implements Prisma.${prismaModelNames[i]}CreateInput {\n  ${properties.join(
-      '\n  '
-    )}\n}\n\n`;
+    typescriptTypes += `}\n\n`;
   }
 
-  return tsCode;
-};
+  return typescriptTypes;
+}
 
+// Generate TypeScript types
+const typescriptTypes = generateTypes(dmmf);
 
-const main = () => {
-  const schemaContent = fs.readFileSync(schemaFilePath, 'utf-8');
-  const Models = extractModel(schemaContent).models;
-  const ModelNames = extractModel(schemaContent).modelNames;
-
-  if (Models) {
-    const tsCode = convertToTypeScript(Models, ModelNames);
-    fs.writeFileSync(outputFilePath, tsCode);
-    console.log('Model extracted and converted to TypeScript successfully.');
-  } else {
-    console.error('Failed to extract Book model from the schema.');
-  }
-
-};
-
-main();
+// Write TypeScript types to a file
+fs.writeFileSync('./prismaTypes.ts', typescriptTypes);
