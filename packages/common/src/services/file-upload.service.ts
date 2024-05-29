@@ -17,21 +17,19 @@ export class FileUploadService {
   private readonly useMinio: boolean;
   private readonly fastifyInstance: FastifyInstance;
   private logger: Logger;
-  private useSSL = false;
 
   constructor() {
     this.logger = new Logger('FileUploadService');
-    this.useMinio = process.env.STORAGE_MODE?.toLowerCase() === 'minio';
-    this.useSSL = !process.env.STORAGE_USE_SSL
-      ? false
-      : process.env.STORAGE_USE_SSL?.toLocaleLowerCase() === 'true';
 
     switch (process.env.STORAGE_MODE?.toLowerCase()) {
       case STORAGE_MODE.MINIO:
         this.storage = new Client({
           endPoint: process.env.STORAGE_ENDPOINT,
           port: parseInt(process.env.STORAGE_PORT),
-          useSSL: this.useSSL,
+          useSSL:
+            process.env.CLIENT_USE_SSL.toLocaleLowerCase() === 'true'
+              ? true
+              : false,
           accessKey: process.env.STORAGE_ACCESS_KEY,
           secretKey: process.env.STORAGE_SECRET_KEY,
         });

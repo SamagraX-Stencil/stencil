@@ -1,5 +1,5 @@
 {
-  "name": "@samagra-x/stencil",
+  "name": "@yash-test/stencil",
   "version": "0.0.6",
   "description": "Stencil - An opinionated backend framework for NodeJS based on NestJS",
   "author": "Yash Mittal (@techsavvyash) & Team SamagraX",
@@ -35,6 +35,7 @@
   "dependencies": {
     "@nestjs/cache-manager": "^2.1.0",
     "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.2.2",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/platform-fastify": "^10.3.0",
