@@ -79,6 +79,14 @@ $ yarn run test:e2e
 $ yarn run test:cov
 ```
 
+## Sample CURLs
+
+### File-Upload
+```bash
+curl --location 'http://localhost:3000/files/upload-file?destination=uploads&filename=back.png' \
+--form 'file=@"/Users/techsavvyash/Downloads/Virtual Background.png"'
+```
+
 ## Stay in touch
 
 - Author - [Yash Mittal](https://techsavvyash.dev) and [Team SamagraX](https://github.com/Samagra-Development)
