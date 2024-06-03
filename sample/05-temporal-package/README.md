@@ -27,7 +27,7 @@ cd docker-compose && docker-compose up -d
 ## Setting up the environment
 
 ```bash
-cp env-example .env
+cp .env.example .env
 ```
 
 ## Setting up temporal
