@@ -73,11 +73,38 @@ $ yarn run start:prod
 $ yarn run test
 
 # e2e tests
-$ yarn run test:e2e
+$ yarn run test:e2e,
 
 # test coverage
 $ yarn run test:cov
 ```
+
+## Steps To Upload File
+
+Send a POST request in the given route: /files/upload-file
+
+The destination and file name should be passed along with the post request as query parameters.
+
+The file should be attached in the request body (as form-data) with field-name(key) as 'file'
+
+API POST Request:
+/files/upload-file?destination=uploads&filename=ayush.txt
+
+The destination and filename fields can be set as per user's choice
+
+
+## Steps To Download File
+
+Send a GET request in the given route: /files/download/:destination
+
+Note: The deafult starting destination is /uploads of your root directory  (same level as that of node_modules directory)
+      'destination' is relative to this directory
+
+API GET Request:
+/files/download/resume
+
+The location of this file is 'your_project'/uploads/resume
+
 
 ## Stay in touch
 
