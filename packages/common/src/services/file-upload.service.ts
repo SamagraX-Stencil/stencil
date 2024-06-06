@@ -105,8 +105,14 @@ export class FileUploadService {
         return fileStream;
       } else {
         const localFilePath = path.join(process.cwd(), 'uploads', fileDownloadRequestDto.destination); // don't use __dirname here that'll point to the dist folder and not the top level folder containing the project (and the uploads folder)
-        const fileStream = fs.createReadStream(localFilePath);
-        return fileStream;
+        if (fs.existsSync(localFilePath)) {
+            const fileStream = fs.createReadStream(localFilePath);
+            return fileStream;
+        }
+        else{
+            this.logger.error(`Error downloading file: File does not exist`);
+            return null;
+        }
       }
     } catch (error) {
       this.logger.error(`Error downloading file: ${error.message}`);
