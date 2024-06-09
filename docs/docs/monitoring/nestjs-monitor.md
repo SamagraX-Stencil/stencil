@@ -11,21 +11,7 @@ title: NestJS-Monitor
 
 `stencil` offers seamless integration with NestJS to automate the creation of `Grafana dashboards`. By leveraging custom NestJS Interceptors, the platform can generate dashboard JSONs automatically, ensuring real-time monitoring and visualization of application performance metrics.
 
-
 ## Features
-
-1. Automatic creation of `grafana` panels.
-2. Automatic updation of panel JSONs upon addition of new instances of `ResponseTimeInterceptor` in the NestJS app.
-3. Each instance of `ResponseTimeInterceptor` corresponds to a new `row` in the response_times `dashboard`.
-4. Each row has the following 5 panels.
-- **Heatmap response times:** This is a heatmap of all the response times for a particular instance of the `ResponseTimeInterceptor`.
-- **Guage for number of requests**: This gauage tells the number of requests that have arrived at each endpoint being captured by a particular instance of `ResponseTimeInterceptor`.
-- **Average response time graph**: This graph gives out information about the average response time for the requests coming through the interceptor.
-- **Total number of requests graph**: This graph tells the total number of requests being received at a particular point of time.
-- **Number of requests by status codes graph**: This graph gives out information about the number of requests grouped by the response HTTP status codes.
-
-
-Features
 1. Automatic Grafana Panel Creation
 stencil simplifies the process of creating Grafana panels. Each time a new instance of the ResponseTimeInterceptor is added to a NestJS application, stencil generates corresponding dashboard panels automatically. This feature eliminates the manual effort involved in setting up performance dashboards, allowing developers to focus on their core application logic.
 
