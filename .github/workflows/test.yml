@@ -52,7 +52,7 @@ jobs:
         uses: actions/setup-node@v4
         
       - name: Install Dependencies for ${{ matrix.dir }}
-        run: npm ci
+        run: yarn install
         working-directory: ${{ matrix.dir }}
 
       - name: Run Tests
