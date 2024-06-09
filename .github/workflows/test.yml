@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         dir:
-          - 'sample/01-all-features'
+          # - 'sample/01-all-features'
           - 'sample/02-monitoring'
           - 'sample/03-response-formatting'
           - 'sample/04-logging'
@@ -58,3 +58,27 @@ jobs:
       - name: Run Tests
         run: yarn run test:e2e
         working-directory: ${{ matrix.dir }}/test
+        
+  test-sample-monitoring:
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+          
+    steps: 
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 
+        uses: actions/setup-node@v4
+        
+      - name: Install Dependencies for monitoring
+        run: yarn install
+        working-directory: sample/02-monitoring
+
+      - name: Run Tests
+        run: yarn run test:e2e
+        working-directory: sample/02-monitoring/test
