@@ -98,7 +98,7 @@ export class FileUploadService {
 
   async download(fileDownloadRequestDto : FileDownloadRequestDTO): Promise<any> {
     try {
-      if (this.useService) {
+      if (this.useMinio) {
         const fileStream = await this.storage.getObject(
           this.configService.get<string>('STORAGE_CONTAINER_NAME'),
           fileDownloadRequestDto.destination,
