@@ -35,7 +35,7 @@ export class GeoIPInterceptor implements NestInterceptor {
       this.allowedCountries.length > 0 &&
       !this.allowedCountries.includes(country)
     ) {
-      console.log(
+      console.error(
         'Denying request from ip: ' + clientIp + ' country: ' + country,
       );
       throw new HttpException('Access Denied', HttpStatus.FORBIDDEN);
