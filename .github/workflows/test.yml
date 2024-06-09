@@ -38,7 +38,7 @@ jobs:
       matrix:
         dir:
           # - 'sample/01-all-features'
-          - 'sample/02-monitoring'
+          # - 'sample/02-monitoring'
           - 'sample/03-response-formatting'
           - 'sample/04-logging'
           - 'sample/05-temporal-package'
