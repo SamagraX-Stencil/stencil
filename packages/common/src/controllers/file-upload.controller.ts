@@ -2,16 +2,22 @@ import {
   Controller,
   Post,
   UploadedFile,
+  UploadedFiles,
   UseInterceptors,
   Param,
   Get,
   Res,
+  Body,
   Query,
 } from '@nestjs/common';
-import { FastifyFileInterceptor } from '../interceptors/file-upload.interceptor';
+import { FastifyFileInterceptor, FastifyFilesInterceptor } from '../interceptors/file-upload.interceptor';
 import { MultipartFile } from '../interfaces/file-upload.interface';
 import { FileUploadService } from '../services/file-upload.service';
 import { FastifyReply } from 'fastify';
+
+interface UploadFilesDto {
+  filenames: string[];
+}
 
 @Controller('files')
 export class FileUploadController {
@@ -47,6 +53,39 @@ export class FileUploadController {
       };
     }
   }
+
+  @Post('upload-files')
+  @UseInterceptors(FastifyFilesInterceptor('files', 10))
+  async uploadMultipleFiles(
+    @UploadedFiles() files: MultipartFile[],
+    @Query('destination') destination: string,
+    @Body() body: UploadFilesDto,
+  ): Promise<{
+    statusCode?: number;
+    message: string;
+    files?: { url: any }[] | undefined;
+  }> {
+    try {
+      const { filenames } = body; // Extract filenames from form data
+      const directories = await this.filesService.uploadMultiple(
+        files,
+        destination,
+        filenames,
+      );
+      return {
+        message: 'Files uploaded successfully',
+        files: directories.map((directory) => ({ url: directory })),
+      };
+    } catch (error) {
+      console.error(`Error uploading files: ${error.message}`);
+      return {
+        statusCode: 500,
+        message: 'Files upload failed',
+        files: undefined,
+      };
+    }
+  }
+
 
   @Get('download/:destination')
   async downloadFile(
