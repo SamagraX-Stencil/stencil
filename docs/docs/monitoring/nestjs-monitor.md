@@ -30,6 +30,7 @@ Each row in the dashboard contains the following five panels:
 - **Total Number of Requests Graph:** This panel provides a timeline view of the total number of requests received at different points in time. It is useful for identifying traffic trends and peak usage periods. This information can be crucial for capacity planning and scaling decisions. The graph can also highlight seasonal or event-driven traffic patterns. Moreover, it helps in understanding user behavior and the application's usage patterns.
 
 - **Number of Requests by Status Codes Graph:** This graph categorizes the requests based on their HTTP status codes. It offers insights into the success and failure rates of requests, helping in diagnosing issues and ensuring robust application performance. The graph can help in quickly identifying and addressing frequent errors or anomalies. It also provides a breakdown of client-side versus server-side errors. Additionally, the graph can be used to track the effectiveness of fixes and improvements over time.
+
 To read more about how the interceptor can be used, refer [here](https://github.com/techsavvyash/nestjs-monitor#usage)
 
 For additional information on NestJS interceptors, refer to the official NestJS documentation [here](https://docs.nestjs.com/interceptors) 
