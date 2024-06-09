@@ -56,5 +56,5 @@ jobs:
         working-directory: ${{ matrix.dir }}
 
       - name: Run Tests
-        run: npm run test
+        run: yarn run test:e2e
         working-directory: ${{ matrix.dir }}/test
