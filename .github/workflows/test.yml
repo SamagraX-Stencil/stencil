@@ -32,22 +32,6 @@ jobs:
         run: yarn run test
         working-directory: packages/common/test/${{ matrix.dir }} 
         
-
-      # - name: Run Tests in common/file-upload
-      #   run: npm run test
-      #   working-directory: packages/common/test/file-upload
-
-      # - name: Run Tests in common/interceptor
-      #   run: npm run test
-      #   working-directory: packages/common/test/interceptor
-
-      # - name: Run Tests in common/monitoring
-      #   run: npm run test
-      #   working-directory: packages/common/test/monitoring
-
-      # - name: Run Tests in common/temporal
-      #   run: npm run test
-      #   working-directory: packages/common/test/temporal
   test-sample:
     runs-on: ubuntu-latest
     strategy:
