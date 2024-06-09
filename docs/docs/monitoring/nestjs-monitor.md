@@ -34,7 +34,8 @@ To read more about how the interceptor can be used, refer [here](https://github.
 
 For additional information on NestJS interceptors, refer to the official NestJS documentation [here](https://docs.nestjs.com/interceptors) 
 
-Demo
+## Demo
+
 A small demo showcasing these `interceptors` in action can be found [here](https://drive.google.com/file/d/1KSxZdQzUU8SJmpmLHPpUSrRpnsL4aQY2/view?usp=sharing). This demonstration provides a practical example of how the interceptors work and the kind of insights they can offer.
 
 By integrating stencil with your NestJS application, you can achieve comprehensive, automated performance monitoring with minimal effort, ensuring your application runs smoothly and efficiently.
