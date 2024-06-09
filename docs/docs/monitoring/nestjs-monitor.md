@@ -21,16 +21,15 @@ Whenever a new ResponseTimeInterceptor instance is introduced, stencil dynamical
 3. Detailed Performance Panels
 Each row in the dashboard contains the following five panels:
 
-- **Heatmap Response Times:** This panel visualizes the distribution of response times for requests captured by a particular ResponseTimeInterceptor instance. It provides a clear overview of performance patterns and helps identify outliers.
+- **Heatmap Response Times:** This panel visualizes the distribution of response times for requests captured by a particular ResponseTimeInterceptor instance. It provides a clear overview of performance patterns and helps identify outliers. The heatmap allows for quick identification of latency issues, and the color intensity indicates the frequency of specific response times. Additionally, it can highlight periods of high and low activity, aiding in performance tuning and resource allocation.
 
-- **Gauge for Number of Requests:** This gauge displays the total number of requests received by each endpoint monitored by the interceptor. It offers a quick snapshot of traffic volume and endpoint activity.
+- **Gauge for Number of Requests:** This gauge displays the total number of requests received by each endpoint monitored by the interceptor. It offers a quick snapshot of traffic volume and endpoint activity. The gauge can indicate sudden spikes in traffic, helping in identifying potential DDoS attacks. Furthermore, it provides real-time feedback on the effectiveness of scaling policies. By monitoring the gauge, you can ensure that your endpoints handle the expected load efficiently.
 
-- **Average Response Time Graph:** This graph tracks the average response times for requests processed by the interceptor. It helps in monitoring the overall performance and responsiveness of the application over time.
+- **Average Response Time Graph:** This graph tracks the average response times for requests processed by the interceptor. It helps in monitoring the overall performance and responsiveness of the application over time. Analyzing the trends in this graph can help pinpoint bottlenecks and inefficiencies in the application. The graph can also be used to measure the impact of performance optimizations. Additionally, it provides insights into how different endpoints perform under varying loads.
 
-- **Total Number of Requests Graph:** This panel provides a timeline view of the total number of requests received at different points in time. It is useful for identifying traffic trends and peak usage periods.
+- **Total Number of Requests Graph:** This panel provides a timeline view of the total number of requests received at different points in time. It is useful for identifying traffic trends and peak usage periods. This information can be crucial for capacity planning and scaling decisions. The graph can also highlight seasonal or event-driven traffic patterns. Moreover, it helps in understanding user behavior and the application's usage patterns.
 
-- **Number of Requests by Status Codes Graph:** This graph categorizes the requests based on their HTTP status codes. It offers insights into the success and failure rates of requests, helping in diagnosing issues and ensuring robust application performance.
-
+- **Number of Requests by Status Codes Graph:** This graph categorizes the requests based on their HTTP status codes. It offers insights into the success and failure rates of requests, helping in diagnosing issues and ensuring robust application performance. The graph can help in quickly identifying and addressing frequent errors or anomalies. It also provides a breakdown of client-side versus server-side errors. Additionally, the graph can be used to track the effectiveness of fixes and improvements over time.
 To read more about how the interceptor can be used, refer [here](https://github.com/techsavvyash/nestjs-monitor#usage)
 
 For additional information on NestJS interceptors, refer to the official NestJS documentation [here](https://docs.nestjs.com/interceptors) 
