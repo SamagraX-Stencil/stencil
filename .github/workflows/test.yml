@@ -1,0 +1,54 @@
+name: "test"
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  test-package:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir: 
+          - 'sample/01-all-features'
+          - 'samples/02-monitoring'
+          - 'sample/03-response-formatting'
+          - 'sample/04-logging'
+          - 'sample/05-temporal-package'
+          - 'sample/06-file-upload'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 
+        uses: actions/setup-node@v4
+
+      - name: Install Dependencies for packages/common
+        run: npm ci
+        working-directory: packages/common
+
+      - name: Run Tests in common/file-upload
+        run: npm run test
+        working-directory: packages/common/test/file-upload
+
+      - name: Run Tests in common/interceptor
+        run: npm run test
+        working-directory: packages/common/test/interceptor
+
+      - name: Run Tests in common/monitoring
+        run: npm run test
+        working-directory: packages/common/test/monitoring
+
+      - name: Run Tests in common/temporal
+        run: npm run test
+        working-directory: packages/common/test/temporal
+
+      - name: Install Dependencies for ${{ matrix.dir }}
+        run: npm ci
+        working-directory: ${{ matrix.dir }}
+
+      - name: Run Tests
+        run: npm run test
+        working-directory: ${{ matrix.dir }}/test
