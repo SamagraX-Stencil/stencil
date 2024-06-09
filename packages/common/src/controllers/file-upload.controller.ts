@@ -54,6 +54,10 @@ export class FileUploadController {
     @Res() res: FastifyReply,
   ): Promise<void> {
     try {
+      const pathTraversalRegex = /\.\.\//;
+      if (pathTraversalRegex.test(destination)) {
+        throw new Error("Invalid Path entered")
+      }
       const fileStream = await this.filesService.download(destination);
       res.headers({
         'Content-Type': 'application/octet-stream',

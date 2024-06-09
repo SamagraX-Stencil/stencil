@@ -103,7 +103,7 @@ export class FileUploadService {
   }
 
   async download(destination: string): Promise<any> {
-    try {
+    try {      
       if (this.useMinio) {
         const fileStream = await this.storage.getObject(
           process.env.STORAGE_CONTAINER_NAME,
