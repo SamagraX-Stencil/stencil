@@ -73,7 +73,7 @@ $ yarn run start:prod
 $ yarn run test
 
 # e2e tests
-$ yarn run test:e2e,
+$ yarn run test:e2e
 
 # test coverage
 $ yarn run test:cov
@@ -91,6 +91,23 @@ API POST Request:
 /files/upload-file?destination=uploads&filename=ayush.txt
 
 The destination and filename fields can be set as per user's choice
+
+## Steps To Upload Multiple Files
+
+Send a POST request in the given route: /files/upload-files
+
+The destination should be passed along with the post request as query parameter.
+
+The files should be added in the request body (as form-data) with field-name(key) as 'files'
+
+The filenames should be added in the request body (as form-data) with field-name(key) as 'filenames'
+
+The files and and the filenames should be passed in form of arrays.
+
+Note: The number of files and filenames must be same and also in the correct order.
+
+API POST Request:
+/files/upload-files?destination=uploads
 
 
 ## Steps To Download File
