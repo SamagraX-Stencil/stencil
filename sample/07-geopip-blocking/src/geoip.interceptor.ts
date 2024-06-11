@@ -8,6 +8,7 @@ import {
   InternalServerErrorException,
   HttpException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Observable } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 
@@ -15,10 +16,12 @@ import { HttpService } from '@nestjs/axios';
 export class GeoIPInterceptor implements NestInterceptor {
   private readonly httpService: HttpService;
   private readonly allowedCountries: string[];
+  private readonly configService : ConfigService; 
 
   constructor(allowedCountries: string[]) {
     this.httpService = new HttpService();
     this.allowedCountries = allowedCountries;
+    this.configService = new ConfigService(); 
   }
 
   async intercept(
@@ -49,8 +52,9 @@ export class GeoIPInterceptor implements NestInterceptor {
 
   private async getLocation(ip: any): Promise<any> {
     try {
+      const geoIp = this.configService.get<string>('GEO_IP'); 
       const resp = await this.httpService.axiosRef.get(
-        `https://geoip.samagra.io/city/${ip}`,
+        `http://geoip.samagra.io/city/${geoIp}`
       );
       return { country: resp.data.country, regionName: resp.data.regionName };
     } catch (err) {
