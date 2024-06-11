@@ -5,7 +5,6 @@ import { FastifyReply } from 'fastify';
 
 describe('FileUploadController', () => {
   let controller: FileUploadController;
-  let filesService: FileUploadService;
 
   const mockRes = {
     headers: jest.fn(),
@@ -32,9 +31,10 @@ describe('FileUploadController', () => {
     controller = module.get<FileUploadController>(FileUploadController);
   });
 
-  it('should reject request with parameters containing ../', async () => {
-    const destination = ['..%2Ftest%2Fjest-e2e.json', '%2E%2E%2F.env'];
-    destination.map(async (file) => {
+  it('should reject request with parameters containing only filename.extension and filename is allowed  ../ ./ /', async () => {
+    // The following array coontains urlencoded rejectddestiantion [.././test/jest-e2e.json , ../.env , folder/index.js, folder/../../.env,
+    const RejectedDestination = ['..%2Ftest%2Fjest-e2e.json', '%2E%2E%2F.env' ,,'folder%2Findex.js','folder%2F..%2F..%2F.env' ];
+    RejectedDestination.map(async (file) => {
       await controller.downloadFile(file, mockRes);
 
       expect(mockRes.status).toHaveBeenCalledWith(500);

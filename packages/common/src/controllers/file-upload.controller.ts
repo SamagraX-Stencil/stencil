@@ -54,7 +54,7 @@ export class FileUploadController {
     @Res() res: FastifyReply,
   ): Promise<void> {
     try {
-        const pathTraversalRegex = /\.\.\//;
+        const pathTraversalRegex = /\.\.\/|\.\//g;
         if (pathTraversalRegex.test(destination)) {
           throw new Error("Invalid Path entered")
         }
