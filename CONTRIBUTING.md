@@ -72,7 +72,7 @@ In case you're unfamiliar with the services being used, here are some resources 
 * [More about Grafana](https://grafana.com/docs/grafana/latest/)
 
 
-## Response-Formatting 
+### Response-Formatting 
 
 * 
 * 
