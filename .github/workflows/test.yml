@@ -1,0 +1,84 @@
+name: "test"
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  test-package:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir: 
+          - 'file-upload'
+          - 'interceptor'
+          - 'monitoring'
+          - 'temporal' 
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 
+        uses: actions/setup-node@v4
+
+      - name: Install Dependencies for packages/common
+        run: npm ci
+        working-directory: packages/common
+
+      - name: Run tests
+        run: yarn run test
+        working-directory: packages/common/test/${{ matrix.dir }} 
+        
+  test-sample:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir:
+          # - 'sample/01-all-features'
+          # - 'sample/02-monitoring'
+          - 'sample/03-response-formatting'
+          - 'sample/04-logging'
+          - 'sample/05-temporal-package'
+          - 'sample/06-file-upload'
+         
+    steps: 
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 
+        uses: actions/setup-node@v4
+        
+      - name: Install Dependencies for ${{ matrix.dir }}
+        run: yarn install
+        working-directory: ${{ matrix.dir }}
+
+      - name: Run Tests
+        run: yarn run test:e2e
+        working-directory: ${{ matrix.dir }}/test
+        
+  test-sample-monitoring:
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+          
+    steps: 
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 
+        uses: actions/setup-node@v4
+        
+      - name: Install Dependencies for monitoring
+        run: yarn install
+        working-directory: sample/02-monitoring
+
+      - name: Run Tests
+        run: yarn run test:e2e
+        working-directory: sample/02-monitoring/test
