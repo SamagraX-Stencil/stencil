@@ -20,6 +20,11 @@ our project that we need help with including:
 If anything doesn't make sense, or doesn't work when you run it, please open a
 bug report and let us know!
 
+## Code Of Conduct 
+If you're a first-time contributor here, you're required to go through the code of conduct elaborated [here](https://github.com/SamagraX-Stencil/stencil/blob/main/sample/01-all-features/CODE_OF_CONDUCT.md)
+
+It is determining for you to adhere to these guidelines if you wish to become a contributor in this project. 
+
 ## Ways to Contribute
 
 We welcome many different types of contributions including:
@@ -32,30 +37,13 @@ We welcome many different types of contributions including:
 
 ## Find an Issue
 
-[Instructions](https://github.com/SamagraX-Stencil/stencil/issues)
-
 We have good first issues for new contributors and help wanted issues suitable
 for any contributor. [Click here](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project) for extra information to
 help you make your first contribution. 
 
-Sometimes there won’t be any issues with these labels. That’s ok! There is
-likely still something for you to work on. If you want to contribute but you
-don’t know where to start or can't find a suitable issue, you can ⚠️ **explain how people can ask for an issue to work on**.
+If you want any issue to be assigned to you, you need to first create a draft PR. The issue would be assigned on that basis. 
+Tag the appropriate person for getting the issue assigned. 
 
-Once you see an issue that you'd like to work on, please post a comment saying
-that you want to work on it. Something like "I want to work on this" with the appropriate person tagged is good. 
-
-## Ask for Help
-
-[Instructions](https://contribute.cncf.io/maintainers/github/templates/required/contributing/#ask-for-help)
-
-The best way to reach us with a question when contributing is to ask on:
-
-⚠️ **Pick the way(s) that you prefer people ask for help**
-
-* The original github issue
-* The developer mailing list
-* Our Slack channel
 
 ## Pull Request Lifecycle
 
@@ -64,8 +52,58 @@ standard PR template here - [pull_request_template](https://github.com/SamagraX-
 
 When you submit your pull request, or you push new commits to it, our automated
 systems will run some checks on your new code. We require that your pull request
-passes these checks.  We recommend that you adhere to the template format and 
+passes these checks.  We recommend that you adhere to the PR template format and 
 include all the checklist items. 
 
 ## Development Environment Setup
+
+Every folder has it's own README specifiying how to set up the service. 
+Just follow along the steps mentioned and you will have the service running on your local. 
+
+## Resources 
+
+In case you're unfamiliar with the services being used, here are some resources to help you get started - 
+
+### Monitoring 
+*[Prometheus](https://youtube.com/playlist?list=PLy7NrYWoggjxCF3av5JKwyG7FFF9eLeL4&si=3st6TLqgku1xrP_p)
+*[Monitor on Ubuntu Server](https://www.youtube.com/watch?v=94JMdueq2SA)
+*[Monitor on Windows](https://www.youtube.com/watch?v=jatcPHvChfI&t=763s)
+*[Prometheus and Grafana Tutorial](https://www.youtube.com/watch?v=9TJx7QTrTyo&t=2s)
+*[More about Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/)
+*[More about Grafana](https://grafana.com/docs/grafana/latest/)
+
+
+## Response-Formatting 
+*[API Data Formats](https://www.atatus.com/blog/guide-to-api-data-formats-json-xml-plain-text-and-binary/)
+*
+*
+
+
+### Logging
+*
+*
+*
+
+### Temporal-Package
+*
+*
+*
+
+
+### File-Upload
+*
+*
+*
+
+
+
+
+
+
+
+
+
+
+
+
 
