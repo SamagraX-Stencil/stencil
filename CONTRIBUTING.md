@@ -76,9 +76,9 @@ In case you're unfamiliar with the services being used, here are some resources 
 
 ## Response-Formatting 
 
-*[API Data Formats](https://www.atatus.com/blog/guide-to-api-data-formats-json-xml-plain-text-and-binary/)
-*
-*
+* [API Data Formats](https://www.atatus.com/blog/guide-to-api-data-formats-json-xml-plain-text-and-binary/)
+* 
+* 
 
 
 ### Logging
