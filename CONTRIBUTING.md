@@ -19,9 +19,9 @@ If anything doesn't make sense, or doesn't work when you run it, please open a
 bug report and let us know!
 
 ## Code Of Conduct 
-If you're a first-time contributor here, you're required to go through the code of conduct elaborated [here](https://github.com/SamagraX-Stencil/stencil/blob/main/sample/01-all-features/CODE_OF_CONDUCT.md)
+If you're a first-time contributor here, you're required to go through the code of conduct elaborated [here](https://github.com/SamagraX-Stencil/stencil/blob/main/sample/01-all-features/CODE_OF_CONDUCT.md).
 
-It is determining for you to adhere to these guidelines if you wish to become a contributor in this project. 
+It is determining for you to adhere to these guidelines if you wish to become a contributor on this project. 
 
 ## Ways to Contribute
 
