@@ -65,6 +65,7 @@ Just follow along the steps mentioned and you will have the service running on y
 In case you're unfamiliar with the services being used, here are some resources to help you get started - 
 
 ### Monitoring 
+
 *[Prometheus](https://youtube.com/playlist?list=PLy7NrYWoggjxCF3av5JKwyG7FFF9eLeL4&si=3st6TLqgku1xrP_p)
 *[Monitor on Ubuntu Server](https://www.youtube.com/watch?v=94JMdueq2SA)
 *[Monitor on Windows](https://www.youtube.com/watch?v=jatcPHvChfI&t=763s)
@@ -74,6 +75,7 @@ In case you're unfamiliar with the services being used, here are some resources 
 
 
 ## Response-Formatting 
+
 *[API Data Formats](https://www.atatus.com/blog/guide-to-api-data-formats-json-xml-plain-text-and-binary/)
 *
 *
