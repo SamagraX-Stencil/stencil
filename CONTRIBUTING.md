@@ -66,12 +66,12 @@ In case you're unfamiliar with the services being used, here are some resources 
 
 ### Monitoring 
 
-*[Prometheus](https://youtube.com/playlist?list=PLy7NrYWoggjxCF3av5JKwyG7FFF9eLeL4&si=3st6TLqgku1xrP_p)
-*[Monitor on Ubuntu Server](https://www.youtube.com/watch?v=94JMdueq2SA)
-*[Monitor on Windows](https://www.youtube.com/watch?v=jatcPHvChfI&t=763s)
-*[Prometheus and Grafana Tutorial](https://www.youtube.com/watch?v=9TJx7QTrTyo&t=2s)
-*[More about Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/)
-*[More about Grafana](https://grafana.com/docs/grafana/latest/)
+* [Prometheus](https://youtube.com/playlist?list=PLy7NrYWoggjxCF3av5JKwyG7FFF9eLeL4&si=3st6TLqgku1xrP_p)
+* [Monitor on Ubuntu Server](https://www.youtube.com/watch?v=94JMdueq2SA)
+* [Monitor on Windows](https://www.youtube.com/watch?v=jatcPHvChfI&t=763s)
+* [Prometheus and Grafana Tutorial](https://www.youtube.com/watch?v=9TJx7QTrTyo&t=2s)
+* [More about Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/)
+* [More about Grafana](https://grafana.com/docs/grafana/latest/)
 
 
 ## Response-Formatting 
