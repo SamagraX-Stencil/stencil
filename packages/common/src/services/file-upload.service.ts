@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as fastify from 'fastify';
 import { InternalServerErrorException, Logger } from '@nestjs/common';
 import { Client } from 'minio';
-import { STORAGE_MODE } from '../interfaces/file-upload.interface';
+import { MultipartFile, STORAGE_MODE } from '../interfaces/file-upload.interface';
 
 export class FileUploadService {
   private readonly storage: any;
@@ -103,7 +103,7 @@ export class FileUploadService {
   }
 
   async uploadMultiple(
-    files: any[],
+    files: ReadonlyArray<MultipartFile>,
     destination: string,
     filenames: string[],
   ): Promise<string[]> {
