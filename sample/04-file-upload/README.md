@@ -79,32 +79,22 @@ $ yarn run test:e2e,
 $ yarn run test:cov
 ```
 
-## Steps To Upload File
+## Steps To Upload Multiple Files
 
-Send a POST request in the given route: /files/upload-file
+Send a POST request in the given route: /files/upload-files
 
-The destination and file name should be passed along with the post request as query parameters.
+The destination should be passed along with the post request as query parameter.
 
-The file should be attached in the request body (as form-data) with field-name(key) as 'file'
+The files should be added in the request body (as form-data) with field-name(key) as 'files'
+
+The filenames should be added in the request body (as form-data) with field-name(key) as 'filenames'
+
+The files and and the filenames should be passed in form of arrays.
+
+Note: The number of files and filenames must be same and also in the correct order.
 
 API POST Request:
-/files/upload-file?destination=uploads&filename=ayush.txt
-
-The destination and filename fields can be set as per user's choice
-
-
-## Steps To Download File
-
-Send a GET request in the given route: /files/download/:destination
-
-Note: The deafult starting destination is /uploads of your root directory  (same level as that of node_modules directory)
-      'destination' is relative to this directory
-
-API GET Request:
-/files/download/resume
-
-The location of this file is 'your_project'/uploads/resume
-
+/files/upload-files?destination=uploads
 
 ## Stay in touch
 
