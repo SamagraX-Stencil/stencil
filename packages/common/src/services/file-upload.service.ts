@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as fastify from 'fastify';
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { Client } from 'minio';
-import { STORAGE_MODE } from '../interfaces/file-upload.interface';
+import { MultipartFile, STORAGE_MODE } from '../interfaces/file-upload.interface';
 import {
   FileDownloadRequestDTO,
   FileUploadRequestDTO,
@@ -109,6 +109,42 @@ export class FileUploadService {
       this.logger.error(`Error uploading file: ${error.message}`);
       throw new InternalServerErrorException('File upload failed');
     }
+  }
+
+  async uploadMultiple(
+    files: ReadonlyArray<MultipartFile>,
+    destination: string,
+    filenames: string[],
+  ): Promise<string[]> {
+    const directories: string[] = [];
+
+    if(!files || files.length == 0) {
+      this.logger.error(`Error uploading file: : 'files' field missing`);
+      throw new InternalServerErrorException('File upload failed: files field missing');
+    }
+    if(!filenames) {
+      this.logger.error(`Error uploading file: : 'filenames' field missing`);
+      throw new InternalServerErrorException('File upload failed: filenames field missing');
+    }
+    if(!Array.isArray(filenames)) {
+      filenames = [filenames];
+    }
+    if (filenames.length != files.length) {
+      this.logger.error(`Error uploading file: Number of files is not equal to number of filenames`);
+      throw new InternalServerErrorException('File upload failed: Number of files is not equal to number of filenames');  
+    }
+    let c:number = 0;
+    for (const file of files) {
+      try {
+        const directory = await this.upload(file, destination, filenames[c]);
+        directories.push(directory);
+      } catch (error) {
+        this.logger.error(`Error uploading file: ${error}`);
+        throw new InternalServerErrorException('File upload failed');
+      }
+        c++;
+      }
+    return directories;
   }
 
   async download(destination: string): Promise<any> {

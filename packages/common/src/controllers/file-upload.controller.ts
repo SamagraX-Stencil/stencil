@@ -57,7 +57,7 @@ export class FileUploadController {
   @Post('upload-files')
   @UseInterceptors(FastifyFilesInterceptor('files', 10))
   async uploadMultipleFiles(
-    @UploadedFiles() files: MultipartFile[],
+    @UploadedFiles() files: ReadonlyArray<MultipartFile>,
     @Query('destination') destination: string,
     @Body() body: UploadFilesDto,
   ): Promise<{
