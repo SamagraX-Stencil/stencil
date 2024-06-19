@@ -79,6 +79,23 @@ $ yarn run test:e2e
 $ yarn run test:cov
 ```
 
+## Steps To Upload Multiple Files
+
+Send a POST request in the given route: /files/upload-files
+
+The destination should be passed along with the post request as query parameter.
+
+The files should be added in the request body (as form-data) with field-name(key) as 'files'
+
+The filenames should be added in the request body (as form-data) with field-name(key) as 'filenames'
+
+The files and and the filenames should be passed in form of arrays.
+
+Note: The number of files and filenames must be same and also in the correct order.
+
+API POST Request:
+/files/upload-files?destination=uploads
+
 ## Stay in touch
 
 - Author - [Yash Mittal](https://techsavvyash.dev) and [Team SamagraX](https://github.com/Samagra-Development)
