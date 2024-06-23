@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { GeoIPInterceptor } from './geoip.interceptor';
+import { GeoIPInterceptor } from '@samagra-x/stencil';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
