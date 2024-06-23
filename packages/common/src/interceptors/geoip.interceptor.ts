@@ -8,6 +8,7 @@ import {
   InternalServerErrorException,
   HttpException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Observable } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 
@@ -15,10 +16,18 @@ import { HttpService } from '@nestjs/axios';
 export class GeoIPInterceptor implements NestInterceptor {
   private readonly httpService: HttpService;
   private readonly allowedCountries: string[];
-
-  constructor(allowedCountries: string[]) {
+  private readonly configService: ConfigService;
+  private readonly logger : Logger;
+  private readonly accessDeniedMessage: string;
+  private readonly accessDeniedStatus: number;
+  
+  constructor(allowedCountries: string[], accessDeniedStatus: number = HttpStatus.FORBIDDEN) {
+    this.logger = new Logger('GeoIPInterceptor');
     this.httpService = new HttpService();
     this.allowedCountries = allowedCountries;
+    this.configService = new ConfigService();
+    this.accessDeniedMessage = 'Access Denied'; 
+    this.accessDeniedStatus = accessDeniedStatus;
   }
 
   async intercept(
@@ -26,37 +35,53 @@ export class GeoIPInterceptor implements NestInterceptor {
     next: CallHandler,
   ): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest();
-    const clientIp = request.headers['x-forwarded-for'] || request.ip; // Get client IP address
 
-    // Call the geolocation service to get the country from the IP
-    const { country, regionName } = await this.getLocation(clientIp);
+    // Log all headers to see what is being received
+    this.logger.log('Request Headers:', request.headers);
 
-    if (
-      this.allowedCountries.length > 0 &&
-      !this.allowedCountries.includes(country)
-    ) {
-      console.log(
-        'Denying request from ip: ' + clientIp + ' country: ' + country,
+    // Extract IP address
+    const clientIp = request.headers['request.ip'] || request.headers['x-forwarded-for'] || request.ip;
+    this.logger.log('Using IP address for geolocation:', clientIp, 'from request:');
+
+    try {
+      // Call the geolocation service to get the country from the IP
+      const { country, regionName } = await this.getLocation(clientIp);
+
+      if (
+        this.allowedCountries.length > 0 &&
+        !this.allowedCountries.includes(country)
+      ) {
+        this.logger.error(
+          'Denying request from IP: ' + clientIp + ' country: ' + country,
+        );
+        throw new HttpException(this.accessDeniedMessage, this.accessDeniedStatus);
+      }
+
+      this.logger.log(
+        'Allowed request from IP: ' + clientIp + ' region: ' + regionName,
       );
-      throw new HttpException('Access Denied', HttpStatus.FORBIDDEN);
+    } catch (err) {
+      this.logger.error('Error occurred while reading the geoip database', err);
+      throw new InternalServerErrorException(
+        'Error occurred while reading the geoip database',
+      );
     }
 
-    console.log(
-      'Allowed request from ip: ' + clientIp + ' region: ' + regionName,
-    );
+    // Continue handling the request
     return next.handle();
   }
 
-  private async getLocation(ip: any): Promise<any> {
+  private async getLocation(ip: string): Promise<any> {
     try {
+      const geoIp = this.configService.get<string>('GEO_IP');
       const resp = await this.httpService.axiosRef.get(
-        `https://geoip.samagra.io/city/${ip}`,
+        `http://geoip.samagra.io/city/${ip}`
       );
       return { country: resp.data.country, regionName: resp.data.regionName };
     } catch (err) {
-      console.error('Error occured while reading the geoip database', err);
+      this.logger.error('Error occurred while reading the geoip database', err);
       throw new InternalServerErrorException(
-        'Error occured while reading the geoip database',
+        'Error occurred while reading the geoip database',
       );
     }
   }
