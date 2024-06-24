@@ -41,7 +41,7 @@ export class GeoIPInterceptor implements NestInterceptor {
 
     // Extract IP address
     const clientIp = request.headers['request.ip'] || request.headers['x-forwarded-for'] || request.ip;
-    this.logger.log('Using IP address for geolocation:', clientIp, 'from request:');
+    this.logger.log('Using IP address for geolocation:', clientIp);
 
     try {
       // Call the geolocation service to get the country from the IP
