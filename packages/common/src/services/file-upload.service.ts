@@ -14,13 +14,13 @@ import {
 
 export class FileUploadService {
   private readonly storage: any;
-  private readonly useMinio: boolean;
+  private readonly useMinio: boolean = process.env.STORAGE_MODE?.toLowerCase() === STORAGE_MODE.MINIO;
   private readonly fastifyInstance: FastifyInstance;
   private logger: Logger;
 
   constructor() {
     this.logger = new Logger('FileUploadService');
-
+    
     switch (process.env.STORAGE_MODE?.toLowerCase()) {
       case STORAGE_MODE.MINIO:
         this.storage = new Client({
@@ -94,7 +94,7 @@ export class FileUploadService {
   async upload(fileUploadRequestDto: FileUploadRequestDTO): Promise<string> {
     try {
       switch (process.env.STORAGE_MODE?.toLowerCase()) {
-        case STORAGE_MODE.MINIO:
+        case STORAGE_MODE.MINIO:  
           this.logger.log('using minio');
           return await this.uploadToMinio(fileUploadRequestDto);
         default:
