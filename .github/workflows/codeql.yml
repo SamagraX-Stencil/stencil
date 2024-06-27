@@ -1,0 +1,59 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Find languages
+      id: findLanguages
+      run: |
+        countTS=$(find ./ -type f -name '*.ts' | wc -l)
+        countJS=$(find ./ -type f -name '*.js' | wc -l)
+        countPY=$(find ./ -type f -name '*.py' | wc -l)
+        countCPP=$(find ./ -type f -name '*.cpp' | wc -l)
+        countJAVA=$(find ./ -type f -name '*.java' | wc -l)
+        languages=""
+        if [ $countTS -gt 0 ]; then
+            languages+="typescript,"
+        fi
+        if [ $countJS -gt 0 ]; then
+            languages+="javascript,"
+        fi
+        if [ $countPY -gt 0 ]; then
+            languages+="python,"
+        fi
+        if [ $countCPP -gt 0 ]; then
+            languages+="cpp,"
+        fi
+        if [ $countJAVA -gt 0 ]; then
+            languages+="java,"
+        fi
+        # Remove the trailing comma
+        languages=${languages%,}
+        echo "languages=$languages" >> $GITHUB_ENV
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ env.languages }}
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2

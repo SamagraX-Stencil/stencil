@@ -73,18 +73,10 @@ $ yarn run start:prod
 $ yarn run test
 
 # e2e tests
-$ yarn run test:e2e
+$ yarn run test:e2e,
 
 # test coverage
 $ yarn run test:cov
-```
-
-## Sample CURLs
-
-### File-Upload
-```bash
-curl --location 'http://localhost:3000/files/upload-file?destination=uploads&filename=back.png' \
---form 'file=@"/Users/techsavvyash/Downloads/Virtual Background.png"'
 ```
 
 ## Stay in touch

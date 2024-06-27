@@ -18,18 +18,22 @@ $ yarn install
 
 This examples requires a running temporal server to work. A `docker-compose.yml` file has been provided in the `docker-compose` folder which has been taking from the official docker-compose repository from temporal's github.
 
-Run the below command from the root of the project to start a temporal instance locally to be used in this example.
+Change the current directory to docker-compose
 
 ```bash
-cd docker-compose && docker-compose up -d
+cd docker-compose 
 ```
 
 ## Setting up the environment
 
 ```bash
-cp env-example .env
+cp .env.example .env
 ```
+## Run the below command from the root of the project to start a temporal instance locally to be used in this example.
 
+```bash
+  docker-compose up -d
+```
 ## Setting up temporal
 
 > Manually
@@ -125,9 +129,13 @@ async getHello() {
 }
 ```
 
-> Via the [CLI](https://github.com/SamagraX-stencil/stencil-cli)
 
-To setup temporal automatically via the CLI simply run the following command:
+##  Setup temporal package  via Stencil [CLI](https://github.com/SamagraX-stencil/stencil-cli):
+1.   Run the folowing command to install `stencil cli` globally
+```bash
+npm i -g @samagra-x/stencil-cli
+```
+2.  To start using `temporal service` run the following command
 ```bash
 stencil add service-temporal 
 ```

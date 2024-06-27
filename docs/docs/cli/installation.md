@@ -12,7 +12,7 @@ title: Setup
 install the package
 
 ```
-npm install -g @soorajk1/stencil-cli
+npm install -g @samagra-x/stencil-cli
 ```
 
 ## USAGE
