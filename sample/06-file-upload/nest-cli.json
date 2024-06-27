@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
-  "collection": "@samagra-x/schematics",
+  "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true
