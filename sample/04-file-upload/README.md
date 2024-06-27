@@ -92,7 +92,7 @@ To upload single or multiple files, follow the steps below:
 ### Request Body
 The request should include the following form-data fields:
 - **file**: The file(s) to be uploaded.
-- **filenames**: The corresponding filename(s) for the uploaded file(s).
+- **filename**: The corresponding filename(s) for the uploaded file(s).
 
 **Note**: Ensure that the number of files and filenames are the same and listed in the correct order.
 
@@ -103,7 +103,7 @@ POST /files/upload-files?destination=uploads
 ```
 In the form-data:
 - Add the files under the field name `file`.
-- Add the filenames under the field name `filenames`.
+- Add the filenames under the field name `filename`.
 
 ## File Download Instructions
 
