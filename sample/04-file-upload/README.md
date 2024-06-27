@@ -79,22 +79,52 @@ $ yarn run test:e2e,
 $ yarn run test:cov
 ```
 
-## Steps To Upload Multiple Files
+## File Upload Instructions
 
-Send a POST request in the given route: /files/upload-files
+To upload single or multiple files, follow the steps below:
 
-The destination should be passed along with the post request as query parameter.
+### Endpoint
+`POST /files/upload-files`
 
-The files should be added in the request body (as form-data) with field-name(key) as 'files'
+### Query Parameters
+- **Destination**: Specifies the target directory for the uploaded files. Example: `/files/upload-files?destination=uploads`.
 
-The filenames should be added in the request body (as form-data) with field-name(key) as 'filenames'
+### Request Body
+The request should include the following form-data fields:
+- **file**: The file(s) to be uploaded.
+- **filenames**: The corresponding filename(s) for the uploaded file(s).
 
-The files and and the filenames should be passed in form of arrays.
+**Note**: Ensure that the number of files and filenames are the same and listed in the correct order.
 
-Note: The number of files and filenames must be same and also in the correct order.
+### Example
+To upload files to the `uploads` directory:
+```
+POST /files/upload-files?destination=uploads
+```
+In the form-data:
+- Add the files under the field name `file`.
+- Add the filenames under the field name `filenames`.
 
-API POST Request:
-/files/upload-files?destination=uploads
+## File Download Instructions
+
+To download a file, follow the steps below:
+
+### Endpoint
+`GET /files/download/:destination`
+
+### Parameters
+- **destination**: The relative path to the file within the `uploads` directory. For example, if the file is located at `your_project/uploads/resume`.
+
+### Example
+To download a file located at `your_project/uploads/resume`:
+```
+GET /files/download/resume
+```
+
+**Note**: The default base directory for downloads is `/uploads`, located at the root level of your project directory (same level as the `node_modules` directory).
+
+By following these steps, you can efficiently handle file uploads and downloads within your project.
+
 
 ## Stay in touch
 
