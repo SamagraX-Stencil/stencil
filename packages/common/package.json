@@ -1,5 +1,5 @@
 {
-  "name": "@yash-test/stencil",
+  "name": "@samagra-x/stencil",
   "version": "0.0.6",
   "description": "Stencil - An opinionated backend framework for NodeJS based on NestJS",
   "author": "Yash Mittal (@techsavvyash) & Team SamagraX",
@@ -21,9 +21,9 @@
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
+    "start": "stencil start",
+    "start:dev": "stencil start --watch",
+    "start:debug": "stencil start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",

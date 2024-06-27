@@ -8,13 +8,13 @@ import { STORAGE_MODE } from '../interfaces/file-upload.interface';
 
 export class FileUploadService {
   private readonly storage: any;
-  private readonly useMinio: boolean;
+  private readonly useMinio: boolean = process.env.STORAGE_MODE?.toLowerCase() === STORAGE_MODE.MINIO;
   private readonly fastifyInstance: FastifyInstance;
   private logger: Logger;
 
   constructor() {
     this.logger = new Logger('FileUploadService');
-
+    
     switch (process.env.STORAGE_MODE?.toLowerCase()) {
       case STORAGE_MODE.MINIO:
         this.storage = new Client({
@@ -91,7 +91,7 @@ export class FileUploadService {
   ): Promise<string> {
     try {
       switch (process.env.STORAGE_MODE?.toLowerCase()) {
-        case STORAGE_MODE.MINIO:
+        case STORAGE_MODE.MINIO:  
           this.logger.log('using minio');
           return await this.uploadToMinio(filename, file);
         default:
@@ -114,8 +114,14 @@ export class FileUploadService {
         return fileStream;
       } else {
         const localFilePath = path.join(process.cwd(), 'uploads', destination); // don't use __dirname here that'll point to the dist folder and not the top level folder containing the project (and the uploads folder)
-        const fileStream = fs.createReadStream(localFilePath);
-        return fileStream;
+        if (fs.existsSync(localFilePath)) {
+            const fileStream = fs.createReadStream(localFilePath);
+            return fileStream;
+        }
+        else{
+            this.logger.error(`Error downloading file: File does not exist`);
+            return null;
+        }
       }
     } catch (error) {
       this.logger.error(`Error downloading file: ${error.message}`);
