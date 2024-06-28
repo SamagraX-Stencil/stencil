@@ -14,16 +14,11 @@ export class ResponseFormatInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       map((data) => ({
+        success: true,
         statuscode: context.switchToHttp().getResponse().statusCode,
-        data: [
-          {
-            data: {
-              message: data,
-              statusCode: context.switchToHttp().getResponse().statusCode,
-            },
-            errors: [],
-          },
-        ],
+        message: 'Success',
+        data: data,
+        error: {},
       })),
       catchError((error) => {
         const status =
@@ -31,29 +26,34 @@ export class ResponseFormatInterceptor implements NestInterceptor {
             ? error.getStatus()
             : HttpStatus.INTERNAL_SERVER_ERROR;
 
-        return of([
-          {
-            statuscode: status,
-            data: {},
-            errors: [this.formatError(error)],
-          },
-        ]);
+        return of({
+          success: false,
+          statuscode: status,
+          message: this.formatErrorMessage(error),
+          data: null,
+          error: this.formatError(error),
+        });
       }),
     );
   }
 
+  private formatErrorMessage(error: any): string {
+    if (error.response && error.response.message) {
+      return error.response.message;
+    }
+    return error.message || 'Internal Server Error';
+  }
+
   private formatError(error: any): any {
-    // Format your error object here. This can be customized as per requirements.
     if (error.response) {
       return {
+        code: error.response.statusCode,
         message: error.response.message,
-        statusCode:
-          error.response.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
       };
     }
     return {
+      code: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       message: error.message,
-      statusCode: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
     };
   }
 }
