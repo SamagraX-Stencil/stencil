@@ -2,38 +2,41 @@ import { FastifyInstance } from 'fastify';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as fastify from 'fastify';
-import { InternalServerErrorException, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { Client } from 'minio';
 import { STORAGE_MODE } from '../interfaces/file-upload.interface';
+import { ConfigService } from '@nestjs/config';
 
+@Injectable()
 export class FileUploadService {
   private readonly storage: any;
-  private readonly useMinio: boolean;
+  private readonly useService: boolean = this.configService.get<string>('STORAGE_MODE')?.toLowerCase() === this.configService.get<string>('STORAGE_MODE.MINIO');
   private readonly fastifyInstance: FastifyInstance;
   private logger: Logger;
-  private useSSL = false;
-
-  constructor() {
+  
+  constructor(private readonly configService: ConfigService) {
     this.logger = new Logger('FileUploadService');
-    this.useMinio = process.env.STORAGE_MODE?.toLowerCase() === 'minio';
-    this.useSSL = !process.env.STORAGE_USE_SSL
-      ? false
-      : process.env.STORAGE_USE_SSL?.toLocaleLowerCase() === 'true';
 
-    switch (process.env.STORAGE_MODE?.toLowerCase()) {
-      case STORAGE_MODE.MINIO:
+    switch (this.configService.get<string>('STORAGE_MODE')?.toLowerCase()) {
+      case this.configService.get<string>('STORAGE_MODE.MINIO'): 
         this.storage = new Client({
-          endPoint: process.env.STORAGE_ENDPOINT,
-          port: parseInt(process.env.STORAGE_PORT),
-          useSSL: this.useSSL,
-          accessKey: process.env.STORAGE_ACCESS_KEY,
-          secretKey: process.env.STORAGE_SECRET_KEY,
+          endPoint: this.configService.get<string>('STORAGE_ENDPOINT'),     
+          port: parseInt(this.configService.get('STORAGE_PORT')),
+          useSSL:
+            this.configService.get<string>('CLIENT_USE_SSL').toLocaleLowerCase() === 'true'
+              ? true
+              : false,
+          accessKey: this.configService.get('STORAGE_ACCESS_KEY'),
+          secretKey: this.configService.get('STORAGE_SECRET_KEY'),
         });
         break;
+
       default:
         this.fastifyInstance = fastify();
     }
   }
+
+  
 
   async uploadToMinio(filename: string, file: any): Promise<string> {
     const metaData = {
@@ -41,7 +44,7 @@ export class FileUploadService {
     };
     return new Promise((resolve, reject) => {
       this.storage.putObject(
-        process.env.MINIO_BUCKETNAME,
+         this.configService.get<string>('MINIO_BUCKETNAME'), //
         filename,
         file.buffer,
         metaData,
@@ -51,8 +54,12 @@ export class FileUploadService {
             reject(err);
           }
           resolve(
-            `${this.useSSL ? 'https' : 'http'}://${process.env.STORAGE_ENDPOINT
-            }:${process.env.STORAGE_PORT}/${process.env.MINIO_BUCKETNAME
+            `${
+              this.configService.get('STORAGE_USE_SSL')?.toLocaleLowerCase() === 'true'
+                ? 'https'
+                : 'http'
+            }://${this.configService.get('STORAGE_ENDPOINT')}:${this.configService.get('STORAGE_PORT')}/${
+               this.configService.get('MINIO_BUCKETNAME')       
             }/${filename}`,
           );
         },
@@ -88,8 +95,8 @@ export class FileUploadService {
     filename: string,
   ): Promise<string> {
     try {
-      switch (process.env.STORAGE_MODE?.toLowerCase()) {
-        case STORAGE_MODE.MINIO:
+      switch (this.configService.get<string>('STORAGE_MODE')?.toLowerCase()) {
+        case this.configService.get<string>('STORAGE_MODE.MINIO'):  
           this.logger.log('using minio');
           return await this.uploadToMinio(filename, file);
         default:
@@ -104,9 +111,9 @@ export class FileUploadService {
 
   async download(destination: string): Promise<any> {
     try {
-      if (this.useMinio) {
+      if (this.useService) {
         const fileStream = await this.storage.getObject(
-          process.env.STORAGE_CONTAINER_NAME,
+          this.configService.get<string>('STORAGE_CONTAINER_NAME'),
           destination,
         );
         return fileStream;
