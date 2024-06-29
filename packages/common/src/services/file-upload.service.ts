@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as fastify from 'fastify';
-import { InternalServerErrorException, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { Client } from 'minio';
 import { STORAGE_MODE } from '../interfaces/file-upload.interface';
 import {
@@ -11,33 +11,38 @@ import {
   SaveToLocaleRequestDTO,
   UploadToMinioRequestDTO,
 } from './dto/file-upload.dto';
+import { ConfigService } from '@nestjs/config';
 
+@Injectable()
 export class FileUploadService {
   private readonly storage: any;
-  private readonly useMinio: boolean = process.env.STORAGE_MODE?.toLowerCase() === STORAGE_MODE.MINIO;
+  private readonly useService: boolean = this.configService.get<string>('STORAGE_MODE')?.toLowerCase() === this.configService.get<string>('STORAGE_MODE.MINIO');
   private readonly fastifyInstance: FastifyInstance;
   private logger: Logger;
-
-  constructor() {
+  
+  constructor(private readonly configService: ConfigService) {
     this.logger = new Logger('FileUploadService');
-    
-    switch (process.env.STORAGE_MODE?.toLowerCase()) {
-      case STORAGE_MODE.MINIO:
+
+    switch (this.configService.get<string>('STORAGE_MODE')?.toLowerCase()) {
+      case this.configService.get<string>('STORAGE_MODE.MINIO'): 
         this.storage = new Client({
-          endPoint: process.env.STORAGE_ENDPOINT,
-          port: parseInt(process.env.STORAGE_PORT),
+          endPoint: this.configService.get<string>('STORAGE_ENDPOINT'),     
+          port: parseInt(this.configService.get('STORAGE_PORT')),
           useSSL:
-            process.env.CLIENT_USE_SSL.toLocaleLowerCase() === 'true'
+            this.configService.get<string>('CLIENT_USE_SSL').toLocaleLowerCase() === 'true'
               ? true
               : false,
-          accessKey: process.env.STORAGE_ACCESS_KEY,
-          secretKey: process.env.STORAGE_SECRET_KEY,
+          accessKey: this.configService.get('STORAGE_ACCESS_KEY'),
+          secretKey: this.configService.get('STORAGE_SECRET_KEY'),
         });
         break;
+
       default:
         this.fastifyInstance = fastify();
     }
   }
+
+  
 
   async uploadToMinio(
     uploadToMinioRequestDto: UploadToMinioRequestDTO,
@@ -47,7 +52,7 @@ export class FileUploadService {
     };
     return new Promise((resolve, reject) => {
       this.storage.putObject(
-        process.env.MINIO_BUCKETNAME,
+         this.configService.get<string>('MINIO_BUCKETNAME'), //
         uploadToMinioRequestDto.filename,
         uploadToMinioRequestDto.file.buffer,
         metaData,
@@ -57,11 +62,13 @@ export class FileUploadService {
             reject(err);
           }
           resolve(
-            `${this.useSSL ? 'https' : 'http'}://${
-              process.env.STORAGE_ENDPOINT
-            }:${process.env.STORAGE_PORT}/${process.env.MINIO_BUCKETNAME}/${
-              uploadToMinioRequestDto.filename
-            }`,
+            `${
+              this.configService.get('STORAGE_USE_SSL')?.toLocaleLowerCase() === 'true'
+                ? 'https'
+                : 'http'
+            }://${this.configService.get('STORAGE_ENDPOINT')}:${this.configService.get('STORAGE_PORT')}/${
+               this.configService.get('MINIO_BUCKETNAME')       
+            }/${filename}`,
           );
         },
       );
@@ -93,8 +100,8 @@ export class FileUploadService {
 
   async upload(fileUploadRequestDto: FileUploadRequestDTO): Promise<string> {
     try {
-      switch (process.env.STORAGE_MODE?.toLowerCase()) {
-        case STORAGE_MODE.MINIO:  
+      switch (this.configService.get<string>('STORAGE_MODE')?.toLowerCase()) {
+        case this.configService.get<string>('STORAGE_MODE.MINIO'):  
           this.logger.log('using minio');
           return await this.uploadToMinio(fileUploadRequestDto);
         default:
@@ -109,9 +116,9 @@ export class FileUploadService {
 
   async download(fileDownloadRequestDto: FileDownloadRequestDTO): Promise<any> {
     try {
-      if (this.useMinio) {
+      if (this.useService) {
         const fileStream = await this.storage.getObject(
-          process.env.STORAGE_CONTAINER_NAME,
+          this.configService.get<string>('STORAGE_CONTAINER_NAME'),
           fileDownloadRequestDto.destination,
         );
         return fileStream;
