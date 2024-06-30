@@ -8,7 +8,7 @@ declare class TemporalWorkflowService {
       taskQueue?: string,
       args?: string[],
       workflowId?: string,
-    ): Promise<any>; 
+    ): Promise<string>; 
   }
 
   export default TemporalWorkflowService;
