@@ -15,45 +15,35 @@ export class ResponseFormatInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((data) => ({
         success: true,
-        statuscode: context.switchToHttp().getResponse().statusCode,
-        message: 'Success',
-        data: data,
+        statusCode: context.switchToHttp().getResponse().statusCode,
+        message: context.switchToHttp().getRequest().method === 'POST' ? 'Created' : 'Success',
+        data,
         error: {},
       })),
       catchError((error) => {
-        const status =
-          error instanceof HttpException
-            ? error.getStatus()
-            : HttpStatus.INTERNAL_SERVER_ERROR;
+        const status = error instanceof HttpException ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+        const message = this.formatErrorMessage(error);
 
         return of({
           success: false,
-          statuscode: status,
-          message: this.formatErrorMessage(error),
+          statusCode: status,
+          message,
           data: null,
-          error: this.formatError(error),
+          error: this.formatError(status, message),
         });
       }),
     );
   }
 
   private formatErrorMessage(error: any): string {
-    if (error.response && error.response.message) {
-      return error.response.message;
-    }
-    return error.message || 'Internal Server Error';
+    const message = error?.response?.message || error.message || 'Internal Server Error';
+    return Array.isArray(message) ? message.join(', ') : message;
   }
 
-  private formatError(error: any): any {
-    if (error.response) {
-      return {
-        code: error.response.statusCode,
-        message: error.response.message,
-      };
-    }
+  private formatError(status: number, message: string): any {
     return {
-      code: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      message: error.message,
+      code: status,
+      message,
     };
   }
 }
