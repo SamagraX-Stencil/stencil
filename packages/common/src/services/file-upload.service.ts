@@ -23,11 +23,11 @@ export class FileUploadService {
     switch (process.env.STORAGE_MODE?.toLowerCase()) {
       case STORAGE_MODE.MINIO:
         this.storage = new Client({
-          endPoint: process.env.STORAGE_ENDPOINT,
-          port: parseInt(process.env.STORAGE_PORT),
+          endPoint: process.env.STORAGE_ENDPOINT as string,
+          port: parseInt(process.env.STORAGE_PORT as string),
           useSSL: this.useSSL,
-          accessKey: process.env.STORAGE_ACCESS_KEY,
-          secretKey: process.env.STORAGE_SECRET_KEY,
+          accessKey: process.env.STORAGE_ACCESS_KEY as string,
+          secretKey: process.env.STORAGE_SECRET_KEY as string,
         });
         break;
       default:
@@ -45,7 +45,7 @@ export class FileUploadService {
         filename,
         file.buffer,
         metaData,
-        function (err) {
+        function (err: Error | null) {
           if (err) {
             console.log('err: ', err);
             reject(err);
