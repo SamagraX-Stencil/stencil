@@ -1,4 +1,4 @@
-import * as fastifyMutipart from 'fastify-multipart';
+import { MultipartFields } from 'fastify-multipart';
 
 export enum STORAGE_MODE {
   MINIO = 'minio',
@@ -13,5 +13,5 @@ export interface MultipartFile {
   filename: string;
   encoding: string;
   mimetype: string;
-  fields: fastifyMutipart.MultipartFields;
+  fields: MultipartFields;
 }
