@@ -12,28 +12,28 @@ import { FastifyFileInterceptor } from '../interceptors/file-upload.interceptor'
 import { MultipartFile } from '../interfaces/file-upload.interface';
 import { FileUploadService } from '../services/file-upload.service';
 import { FastifyReply } from 'fastify';
+import { UploadFileDTO } from './dto/file-upload.dto';
+import { FileUploadDTO, FileDownloadDTO } from '../services/dto/file-upload.dto';
+import {FastifyFileInterceptorDTO } from '../interceptors/dto/file-upload.dto';
 
 @Controller('files')
 export class FileUploadController {
-  constructor(private readonly filesService: FileUploadService) {}
+  constructor(private readonly filesService: FileUploadService) { }
 
   @Post('upload-file')
-  @UseInterceptors(FastifyFileInterceptor('file', {}))
+  @UseInterceptors(FastifyFileInterceptor(new FastifyFileInterceptorDTO()))
   async uploadFile(
     @UploadedFile() file: MultipartFile,
     @Query('destination') destination: string,
     @Query('filename') filename: string,
-  ): Promise<{
-    statusCode?: number;
-    message: string;
-    file?: { url: string } | undefined;
-  }> {
+  ): Promise<UploadFileDTO> {
     try {
-      const directory = await this.filesService.upload(
+      const fileUpload: FileUploadDTO = {
         file,
-        destination,
         filename,
-      );
+        destination,
+      };
+      const directory = await this.filesService.upload(fileUpload);
       return {
         message: 'File uploaded successfully',
         file: { url: directory },
@@ -54,7 +54,10 @@ export class FileUploadController {
     @Res() res: FastifyReply,
   ): Promise<void> {
     try {
-      const fileStream = await this.filesService.download(destination);
+      const fileDownloadDTO: FileDownloadDTO ={
+        destination,
+      };
+      const fileStream = await this.filesService.download(fileDownloadDTO);
       res.headers({
         'Content-Type': 'application/octet-stream',
         'Content-Disposition': `attachment; filename=${destination}`,

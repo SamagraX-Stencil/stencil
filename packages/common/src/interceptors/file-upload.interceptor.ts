@@ -9,13 +9,11 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import FastifyMulter from 'fastify-multer';
-import { Options, Multer } from 'multer';
+import { Multer } from 'multer';
+import { FastifyFileInterceptorDTO } from './dto/file-upload.dto';
 
 type MulterInstance = any;
-export function FastifyFileInterceptor(
-  fieldName: string,
-  localOptions: Options,
-): Type<NestInterceptor> {
+export function FastifyFileInterceptor(fastifyFileInterceptorDto: FastifyFileInterceptorDTO): Type<NestInterceptor> {
   class MixinInterceptor implements NestInterceptor {
     protected multer: MulterInstance;
 
@@ -24,7 +22,7 @@ export function FastifyFileInterceptor(
       @Inject('MULTER_MODULE_OPTIONS')
       options: Multer,
     ) {
-      this.multer = (FastifyMulter as any)({ ...options, ...localOptions });
+      this.multer = (FastifyMulter as any)({ ...options, ...fastifyFileInterceptorDto.localOptions });
     }
 
     async intercept(
@@ -34,7 +32,7 @@ export function FastifyFileInterceptor(
       const ctx = context.switchToHttp();
 
       await new Promise<void>((resolve, reject) =>
-        this.multer.single(fieldName)(
+        this.multer.single(fastifyFileInterceptorDto.fieldName)(
           ctx.getRequest(),
           ctx.getResponse(),
           (error: any) => {
