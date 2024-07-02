@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ResponseFormatInterceptor } from './response-format.interceptor';
-// import { ResponseFormatInterceptor } from '@samagra-x/stencil';
+import { ResponseFormatInterceptor } from '@samagra-x/stencil';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
