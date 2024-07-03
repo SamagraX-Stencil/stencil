@@ -18,6 +18,8 @@ jobs:
         run: npm install
       - name: change directory
         run: cd packages/common
+      - name: Install Jest globally
+        run: npm install -g jest
       - name: Run tests
         run: npm run test
         working-directory: packages/common
