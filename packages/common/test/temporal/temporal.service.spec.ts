@@ -1,3 +1,4 @@
+import { StartWorkflowRequestDTO } from 'src';
 import { TemporalWorkflowService } from '../../src/services/temporal.service';
 import { WorkflowClient } from '@temporalio/client';
 
@@ -36,7 +37,14 @@ describe('TemporalWorkflowService', () => {
       const taskQueue = 'default';
       const workflowId = 'test-workflow-id';
 
-      const result = await service.startWorkflow(workflow, taskQueue, args, workflowId);
+      const startWorkflowRequestDTO: StartWorkflowRequestDTO = {
+        workflow,
+        taskQueue,
+        args,
+        workflowId,
+      };
+      
+      const result = await service.startWorkflow(startWorkflowRequestDTO);
 
       expect(mockWorkflowClient.start).toHaveBeenCalledWith(workflow, {
         taskQueue,
@@ -50,7 +58,12 @@ describe('TemporalWorkflowService', () => {
     it('should use default values if optional parameters are not provided', async () => {
       const workflow = 'testWorkflow';
 
-      const result = await service.startWorkflow(workflow);
+      const startWorkflowRequestDTO: StartWorkflowRequestDTO = {
+        workflow,
+      };
+
+
+      const result = await service.startWorkflow(startWorkflowRequestDTO);
 
       expect(mockWorkflowClient.start).toHaveBeenCalledWith(workflow, {
         taskQueue: 'default',
@@ -64,7 +77,11 @@ describe('TemporalWorkflowService', () => {
     it('should handle workflow client errors', async () => {
       (mockWorkflowClient.start as jest.Mock).mockRejectedValue(new Error('Workflow start error'));
 
-      await expect(service.startWorkflow('testWorkflow')).rejects.toThrow('Workflow start error');
+      const startWorkflowRequestDTO: StartWorkflowRequestDTO = {
+        workflow: 'testWorkflow',
+      };
+
+      await expect(service.startWorkflow(startWorkflowRequestDTO)).rejects.toThrow('Workflow start error');
     });
   });
 });
