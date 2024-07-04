@@ -105,7 +105,7 @@ describe('FileUploadService', () => {
 
       const result = await service.upload(fileUploadDTO);
       expect(result).toEqual(expectedUrl);
-      expect(service.uploadToMinio).toHaveBeenCalledWith(filename, file);
+      expect(service.uploadToMinio).toHaveBeenCalledWith(fileUploadDTO);
     });
 
     it('should save a file locally if STORAGE_MODE is not minio', async () => {
@@ -129,7 +129,7 @@ describe('FileUploadService', () => {
 
       const result = await service.upload(saveToLocaleRequestDto);
       expect(result).toEqual(expectedDestination);
-      expect(service.saveLocalFile).toHaveBeenCalledWith(destination, filename, file);
+      expect(service.saveLocalFile).toHaveBeenCalledWith(saveToLocaleRequestDto);
     });
 
     it('should handle upload errors', async () => {
