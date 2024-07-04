@@ -1,45 +1,65 @@
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { Histogram, exponentialBuckets } from 'prom-client';
-import * as fs from 'fs';
-import { generateBaseJSON, generateRow } from './utils';
+import axios from 'axios'; 
+
+import {
+  generateBaseJSON,
+  generateRow,
+  getDashboardByUID,
+  getDashboardJSON,
+} from './utils';
 
 @Injectable()
 export class ResponseTimeInterceptor implements NestInterceptor {
   private histogram: Histogram;
   private logger: Logger;
+  private dashboardUid: string;
+  private grafanaBaseURL: string;
+  private apiToken: string;
 
-  constructor(histogramTitle: string, jsonPath: string) {
+  constructor(
+    histogramTitle: string,
+    grafanaBaseURL: string,
+    apiToken: string,
+  ) {
     const name = histogramTitle + '_response_time';
     this.logger = new Logger(name + '_interceptor');
+    this.dashboardUid = null;
+    this.grafanaBaseURL = grafanaBaseURL;
+    this.apiToken = apiToken;
+    this.init(histogramTitle, grafanaBaseURL);
+  }
 
+  async init(histogramTitle: string, grafanaBaseURL: string) {
+    const name = histogramTitle + '_response_time';
     this.histogram = new Histogram({
       name: name,
       help: 'Response time of APIs',
       buckets: exponentialBuckets(1, 1.5, 30),
       labelNames: ['statusCode', 'endpoint'],
     });
-
-    // updating the grafana JSON with the row for this panel
+    console.log("apiToken", this.apiToken);
+    console.log("grafanaBaseURL", grafanaBaseURL);
     try {
-      // check if the path exists or not?
-      if (!fs.existsSync(jsonPath)) {
-        fs.writeFileSync(jsonPath, JSON.stringify(generateBaseJSON()), 'utf8'); // create file if not exists
-      }
+      const dashboardJSONSearchResp = await getDashboardJSON(
+        this.apiToken,
+        histogramTitle,
+        grafanaBaseURL,
+      );
+      this.dashboardUid =
+        dashboardJSONSearchResp.length > 0
+          ? dashboardJSONSearchResp[0]['uid']
+          : undefined;
+      let parsedContent: any;
 
-      const parsedContent = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+      if (this.dashboardUid === null || !this.dashboardUid) {
+        parsedContent = generateBaseJSON(histogramTitle);
+        
+        let isPresent = false;
 
-      // skip creating the row if it already exists -- prevents multiple panels/rows on app restarts
-      let isPresent = false;
-      parsedContent.panels.forEach((panel: any) => {
-        // TODO: Make this verbose and add types -- convert the grafana JSON to TS Types/interface
+      parsedContent.dashboard.panels.forEach((panel: any) => {
         if (
           panel.title.trim() ===
           name
@@ -52,13 +72,43 @@ export class ResponseTimeInterceptor implements NestInterceptor {
         }
       });
       if (isPresent) return;
+       parsedContent.dashboard.panels.push(generateRow(name));
+      } else {
+        parsedContent = await getDashboardByUID(this.dashboardUid, grafanaBaseURL, this.apiToken);
+        
+        
+        let isPresent = false;
+        parsedContent.panels.forEach((panel: any) => {
+          if (
+            panel.title.trim() ===
+            name
+              .split('_')
+              .map((str) => str.charAt(0).toUpperCase() + str.slice(1))
+              .join(' ')
+              .trim()
+          ) {
+            isPresent = true;
+          }
+        });
+        if (isPresent) return;
+  
+        parsedContent.panels.push(generateRow(name));
+      }
+      
 
-      parsedContent.panels.push(generateRow(name));
-      // write back to file
-      fs.writeFileSync(jsonPath, JSON.stringify(parsedContent));
+     
+      const FINAL_JSON = parsedContent;
+       await axios.post(`${grafanaBaseURL}/api/dashboards/db`, FINAL_JSON, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiToken}`
+        }
+      });
+      
       this.logger.log('Successfully added histogram to dashboard!');
     } catch (err) {
-      this.logger.error('Error updating grafana JSON!', err);
+      console.error('Error updating grafana JSON!', err);
     }
   }
 
@@ -70,7 +120,6 @@ export class ResponseTimeInterceptor implements NestInterceptor {
     const startTime = performance.now();
     return next.handle().pipe(
       tap(() => {
-        // handles when there is no error propagating from the services to the controller
         const endTime = performance.now();
         const responseTime = endTime - startTime;
         const statusCode = response.statusCode;
@@ -78,14 +127,10 @@ export class ResponseTimeInterceptor implements NestInterceptor {
         this.histogram.labels({ statusCode, endpoint }).observe(responseTime);
       }),
       catchError((err) => {
-        // handles when an exception is to be returned to the client
-        this.logger.error('error: ', err);
         const endTime = performance.now();
         const responseTime = endTime - startTime;
         const endpoint = request.url;
-        this.histogram
-          .labels({ statusCode: err.status, endpoint })
-          .observe(responseTime);
+        this.histogram.labels({ statusCode: err.status, endpoint }).observe(responseTime);
         return throwError(() => {
           throw err;
         });
@@ -93,3 +138,6 @@ export class ResponseTimeInterceptor implements NestInterceptor {
     );
   }
 }
+
+
+

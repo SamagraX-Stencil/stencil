@@ -1,54 +1,90 @@
-export const generateBaseJSON = () => {
+import axios from 'axios';
+
+export const generateBaseJSON = (histogramTitle) => {
   return {
-    annotations: {
-      list: [
-        {
-          builtIn: 1,
-          datasource: {
-            type: 'grafana',
-            uid: '-- Grafana --',
-          },
-          enable: true,
-          hide: true,
-          iconColor: 'rgba(0, 211, 255, 1)',
-          name: 'Annotations & Alerts',
-          type: 'dashboard',
+    meta: {                                                       
+      type: "db",
+      canSave: true,
+      canEdit: true,
+      canAdmin: true,
+      canStar: true,
+      canDelete: true,
+      slug: histogramTitle,
+      url: `/d/ec1b884b/${histogramTitle}`,
+      expires: "0001-01-01T00:00:00Z",
+      created: "2024-07-03T04:01:29Z",
+      updated: "2024-07-03T04:01:29Z",
+      updatedBy: "admin",
+      createdBy: "admin",
+      version: 1,
+      hasAcl: false,
+      isFolder: false,
+      folderId: 0,
+      folderUid: "",
+      folderTitle: "General",
+      folderUrl: "",
+      provisioned: false,
+      provisionedExternalId: "",
+      annotationsPermissions: {
+        dashboard: {
+          canAdd: true,
+          canEdit: true,
+          canDelete: true,
         },
-      ],
+        organization: {
+          canAdd: true,
+          canEdit: true,
+          canDelete: true,
+        },
+      },
     },
-    description: 'Dashboard for API response time visualisations\n',
-    editable: true,
-    fiscalYearStartMonth: 0,
-    graphTooltip: 0,
-    id: 5,
-    links: [],
-    liveNow: false,
-    panels: [],
-    refresh: '',
-    schemaVersion: 38,
-    tags: [],
-    templating: {
-      list: [],
+    dashboard: {
+      annotations: {
+        list: [
+          {
+            builtIn: 1,
+            datasource: {
+              type: 'grafana',
+              uid: '-- Grafana --',
+            },
+            enable: true,
+            hide: true,
+            iconColor: 'rgba(0, 211, 255, 1)',
+            name: 'Annotations & Alerts',
+            type: 'dashboard',
+          },
+        ],
+      },
+      description: 'Dashboard for API response time visualisations\n',
+      editable: true,
+      fiscalYearStartMonth: 0,
+      graphTooltip: 0,
+      id: null,
+      links: [],
+      liveNow: false,
+      panels: [],
+      refresh: '',
+      schemaVersion: 38,
+      tags: [],
+      templating: {
+        list: [],
+      },
+      time: {
+        from: 'now-6h',
+        to: 'now',
+      },
+      timepicker: {},
+      timezone: '',
+      title: histogramTitle,
+      uid: null,
+      version: 1,
+      weekStart: '',
     },
-    time: {
-      from: 'now-6h',
-      to: 'now',
-    },
-    timepicker: {},
-    timezone: '',
-    title: 'Response Times',
-    uid: 'ec1b884b-753e-405f-8f4b-e0a5d97cf167',
-    version: 6,
-    weekStart: '',
   };
 };
 
+
 export const generateRow = (name: string) => {
-  const textPanel = generateTextPanel(
-    name,
-    // `# ${name} Response Time Information\n`,
-    name,
-  );
   const gauagePanel = generateGaugePanel(name);
   const heatmap = generateHeatmap(name);
   const successfulUnsuccessful = generateSuccessfulUnSuccessfulPanel(name);
@@ -570,3 +606,46 @@ export const generateAverageResponseTimePanel = (label: string) => {
     type: 'timeseries',
   };
 };
+
+
+
+
+
+export const getDashboardByUID = async (
+  uid: string,
+  grafanaBaseURL: string,
+  apiToken : string
+) => {
+  try {
+    const resp = await axios.get(grafanaBaseURL + `/api/dashboards/uid/${uid}`, {
+      headers: {
+        'Authorization': `Bearer ${apiToken}`
+      }
+    });
+    return resp.data.dashboard;
+  } catch (err) {
+   console.error('error getting dashboard by uid: ', err);
+  }
+  return ;
+};
+
+export const getDashboardJSON = async (
+  token: string,
+  dashboardTitle: string,
+  grafanaBaseURL: string,
+) => {
+  try {
+    const resp: any = await axios.get(grafanaBaseURL + '/api/search', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return (resp.data as any[]).filter((item) => {
+      return item.title && item.title === dashboardTitle;
+    });
+  } catch (err) {
+    console.error('Error searching dashboards: ', err);
+  }
+  return;
+};
+
