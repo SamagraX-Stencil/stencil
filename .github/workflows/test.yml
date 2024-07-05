@@ -1,0 +1,60 @@
+name: "test"
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  test-package:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir: 
+          - 'file-upload'
+          - 'interceptor'
+          - 'monitoring'
+          - 'temporal' 
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.7
+
+      - name: Use Node.js 
+        uses: actions/setup-node@v4
+
+      - name: Install Dependencies for packages/common
+        run: npm ci
+        working-directory: packages/common
+
+      - name: Run tests
+        run: yarn run test
+        working-directory: packages/common/test/${{ matrix.dir }} 
+
+  test-sample:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir:
+          # - '01-all-features'
+          - '02-monitoring'
+          - '03-response-formatting'
+          - '04-logging'
+          - '05-temporal-package'
+          - '06-file-upload'
+
+    steps: 
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 
+        uses: actions/setup-node@v4
+
+      - name: Install Dependencies for ${{ matrix.dir }}
+        run: yarn install
+        working-directory: sample/${{ matrix.dir }}
+
+      - name: Run Tests
+        run: yarn run test:e2e
+        working-directory: sample/${{ matrix.dir }}/test
