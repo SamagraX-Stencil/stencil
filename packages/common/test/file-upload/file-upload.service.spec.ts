@@ -27,11 +27,11 @@ describe('FileUploadService', () => {
     get: jest.fn((key: string) => {
       const config = {
         STORAGE_MODE: 'MINIO',
-        STORAGE_ENDPOINT: 'localhost',
-        STORAGE_PORT: '9000',
-        STORAGE_ACCESS_KEY: '5wmqDihWraT51LUgH2z1',
-        STORAGE_SECRET_KEY: '4AzloXYR22h15zPFjVuSmwKaCGPyUZKRovkSzOJW',
-        MINIO_BUCKETNAME: 'file-upload-test',
+        // STORAGE_ENDPOINT: process.env.STORAGE_ENDPOINT || 'localhost',
+        // STORAGE_PORT:'9000',
+        // STORAGE_ACCESS_KEY: process.env.STORAGE_ACCESS_KEY,
+        // STORAGE_SECRET_KEY: process.env.STORAGE_SECRET_KEY,
+        // MINIO_BUCKETNAME: process.env.MINIO_BUCKETNAME,
       };
       return config[key];
     }),
