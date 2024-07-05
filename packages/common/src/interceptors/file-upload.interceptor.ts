@@ -10,8 +10,9 @@ import {
 import { Observable } from 'rxjs';
 import FastifyMulter from 'fastify-multer';
 import { Options, Multer } from 'multer';
+import { InterceptResponseDTO } from './dto/file-upload.dto';
 
-type MulterInstance = any;
+type MulterInstance = Multer; 
 export function FastifyFileInterceptor(
   fieldName: string,
   localOptions: Options,
@@ -30,7 +31,7 @@ export function FastifyFileInterceptor(
     async intercept(
       context: ExecutionContext,
       next: CallHandler,
-    ): Promise<Observable<any>> {
+    ): Promise<Observable<InterceptResponseDTO>> {
       const ctx = context.switchToHttp();
 
       await new Promise<void>((resolve, reject) =>

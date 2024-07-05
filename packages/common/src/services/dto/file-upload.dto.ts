@@ -24,7 +24,7 @@ export class FileUploadResponseDTO {
 }
 
 export class FileDownloadRequestDTO {
-  stream: NodeJS.ReadableStream | null;
+  destination: string;
 }
 
 export class FileDownloadResponseDTO{
