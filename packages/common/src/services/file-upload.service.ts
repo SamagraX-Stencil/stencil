@@ -16,29 +16,32 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class FileUploadService {
   private readonly storage: any;
-  private readonly useService: boolean = this.configService.get<string>('STORAGE_MODE')?.toLowerCase() === this.configService.get<string>('STORAGE_MODE.MINIO');
+  private readonly useService: boolean;
   private readonly fastifyInstance: FastifyInstance;
+  private readonly useSSL: boolean;
+  private readonly storageEndpoint: string;
+  private readonly storagePort: number;
+  private readonly bucketName: string;
   private logger: Logger;
-  
+
   constructor(private readonly configService: ConfigService) {
     this.logger = new Logger('FileUploadService');
+    this.useService = this.configService.get<string>('STORAGE_MODE')?.toLowerCase() === STORAGE_MODE.MINIO;
+    this.useSSL = this.configService.get<string>('STORAGE_USE_SSL') === 'true';
+    this.storageEndpoint = this.configService.get<string>('STORAGE_ENDPOINT');
+    this.storagePort = parseInt(this.configService.get('STORAGE_PORT'), 10);
+    this.bucketName = this.configService.get<string>('MINIO_BUCKETNAME');
 
-    switch (this.configService.get<string>('STORAGE_MODE')?.toLowerCase()) {
-      case this.configService.get<string>('STORAGE_MODE.MINIO'): 
-        this.storage = new Client({
-          endPoint: this.configService.get<string>('STORAGE_ENDPOINT'),     
-          port: parseInt(this.configService.get('STORAGE_PORT')),
-          useSSL:
-            this.configService.get<string>('CLIENT_USE_SSL').toLocaleLowerCase() === 'true'
-              ? true
-              : false,
-          accessKey: this.configService.get('STORAGE_ACCESS_KEY'),
-          secretKey: this.configService.get('STORAGE_SECRET_KEY'),
-        });
-        break;
-
-      default:
-        this.fastifyInstance = fastify();
+    if (this.useService) {
+      this.storage = new Client({
+        endPoint: this.storageEndpoint,
+        port: this.storagePort,
+        useSSL: this.useSSL,
+        accessKey: this.configService.get('STORAGE_ACCESS_KEY'),
+        secretKey: this.configService.get('STORAGE_SECRET_KEY'),
+      });
+    } else {
+      this.fastifyInstance = fastify();
     }
   }
 
@@ -56,19 +59,13 @@ export class FileUploadService {
         uploadToMinioRequestDto.filename,
         uploadToMinioRequestDto.file.buffer,
         metaData,
-        function (err) {
+        (err) => {
           if (err) {
-            console.log('err: ', err);
+            this.logger.error(`Error uploading to Minio: ${err.message}`);
             reject(err);
           }
           resolve(
-            `${
-              this.configService.get('STORAGE_USE_SSL')?.toLocaleLowerCase() === 'true'
-                ? 'https'
-                : 'http'
-            }://${this.configService.get('STORAGE_ENDPOINT')}:${this.configService.get('STORAGE_PORT')}/${
-               this.configService.get('MINIO_BUCKETNAME')       
-            }/${filename}`,
+            `${this.useSSL ? 'https' : 'http'}://${this.storageEndpoint}:${this.storagePort}/${this.bucketName}/${filename}`,
           );
         },
       );
@@ -85,11 +82,11 @@ export class FileUploadService {
     const localFilePath = path.join(uploadsDir, saveToLocalRequestDto.filename);
     if (!fs.existsSync(uploadsDir)) {
       try {
-        // Create the directory
         fs.mkdirSync(uploadsDir, { recursive: true });
         this.logger.log(`Directory created at ${uploadsDir}`);
       } catch (err) {
         this.logger.error(`Error creating directory: ${err.message}`);
+        throw new InternalServerErrorException('File upload failed: directory creation error');
       }
     } else {
       this.logger.log(`Directory already exists at ${uploadsDir}`);
@@ -109,7 +106,7 @@ export class FileUploadService {
           return await this.saveLocalFile(fileUploadRequestDto);
       }
     } catch (error) {
-      this.logger.error(`Error uploading file: ${error}`);
+      this.logger.error(`Error uploading file: ${error.message}`);
       throw new InternalServerErrorException('File upload failed');
     }
   }
