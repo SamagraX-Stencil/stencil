@@ -13,16 +13,19 @@ import { catchError, map } from 'rxjs/operators';
 export class ResponseFormatInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
-      map((response) => {
+      map((data) => {
         return {
           success: true,
           statusCode: context.switchToHttp().getResponse().statusCode,
-          data: response.message, 
+          data,
           error: null,
         };
       }),
       catchError((error) => {
-        const status = error instanceof HttpException ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+        const status =
+          error instanceof HttpException
+            ? error.getStatus()
+            : HttpStatus.INTERNAL_SERVER_ERROR;
         const errMessage = this.formatErrorMessage(error);
 
         return of({
@@ -35,8 +38,24 @@ export class ResponseFormatInterceptor implements NestInterceptor {
     );
   }
 
-  private formatErrorMessage(error: any): string {
-    const errMessage = error?.response?.message || error.message || 'Internal Server Error';
-    return Array.isArray(errMessage) ? errMessage.join(', ') : errMessage;
+  private formatErrorMessage(error: any): ReadonlyArray<string> {
+    console.log('error: ', error);
+
+    let errMessage =
+      error?.response?.message || error.message || 'Internal Server Error';
+
+    // Attempt to parse the error message if it's a string
+    if (typeof errMessage === 'string') {
+      try {
+        const parsedMessage = JSON.parse(errMessage);
+        if (parsedMessage && typeof parsedMessage === 'object') {
+          errMessage = parsedMessage.message || parsedMessage;
+        }
+      } catch (e) {
+        // If parsing fails, use the original string
+      }
+    }
+
+    return Array.isArray(errMessage) ? errMessage : [errMessage];
   }
 }
