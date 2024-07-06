@@ -1,12 +1,12 @@
 import { ExecutionContext, NestInterceptor } from '@nestjs/common';
 import { of, throwError } from 'rxjs';
-import { FastifyFileInterceptor } from '../src/interceptors/file-upload.interceptor';
+import { FastifyFilesInterceptor } from '../../src/interceptors/file-upload.interceptor';
 
 describe('FastifyFileInterceptor', () => {
   let interceptor: NestInterceptor;
 
   beforeEach(async () => {
-    const interceptorClass = FastifyFileInterceptor('file', {});
+    const interceptorClass = FastifyFilesInterceptor('file', []);
     interceptor = new interceptorClass();
   });
 
@@ -34,7 +34,7 @@ describe('FastifyFileInterceptor', () => {
     const nextHandler = createMockNextHandler();
   
     // Mock the multer middleware to throw an error
-    jest.spyOn(interceptor['multer'], 'single').mockImplementation(() => {
+    jest.spyOn(interceptor['multer'], 'array').mockImplementation(() => {
       return (req, res, callback) => {
         callback(new Error(errorMessage));
       };
@@ -42,6 +42,7 @@ describe('FastifyFileInterceptor', () => {
   
     await expect(interceptor.intercept(context, nextHandler)).rejects.toThrow(errorMessage);
   });
+  
 
 
   it('should handle getting an uploaded file when file is not present or null', async () => {

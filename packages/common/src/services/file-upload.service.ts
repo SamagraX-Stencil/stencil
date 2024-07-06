@@ -2,36 +2,41 @@ import { FastifyInstance } from 'fastify';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as fastify from 'fastify';
-import { InternalServerErrorException, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { Client } from 'minio';
-import { STORAGE_MODE } from '../interfaces/file-upload.interface';
+import { MultipartFile, STORAGE_MODE } from '../interfaces/file-upload.interface';
+import { ConfigService } from '@nestjs/config';
 
+@Injectable()
 export class FileUploadService {
   private readonly storage: any;
-  private readonly useMinio: boolean;
+  private readonly useService: boolean;
   private readonly fastifyInstance: FastifyInstance;
+  private readonly useSSL: boolean;
+  private readonly storageEndpoint: string;
+  private readonly storagePort: number;
+  private readonly bucketName: string;
   private logger: Logger;
-  private useSSL = false;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     this.logger = new Logger('FileUploadService');
-    this.useMinio = process.env.STORAGE_MODE?.toLowerCase() === 'minio';
-    this.useSSL = !process.env.STORAGE_USE_SSL
-      ? false
-      : process.env.STORAGE_USE_SSL?.toLocaleLowerCase() === 'true';
+    this.useService = this.configService.get<string>('STORAGE_MODE')?.toLowerCase() === STORAGE_MODE.MINIO;
+    this.useSSL = this.configService.get<string>('STORAGE_USE_SSL') === 'true';
+    this.storageEndpoint = this.configService.get<string>('STORAGE_ENDPOINT');
+    this.storagePort = parseInt(this.configService.get('STORAGE_PORT'), 10);
+    this.bucketName = this.configService.get<string>('MINIO_BUCKETNAME');
 
-    switch (process.env.STORAGE_MODE?.toLowerCase()) {
-      case STORAGE_MODE.MINIO:
-        this.storage = new Client({
-          endPoint: process.env.STORAGE_ENDPOINT,
-          port: parseInt(process.env.STORAGE_PORT),
-          useSSL: this.useSSL,
-          accessKey: process.env.STORAGE_ACCESS_KEY,
-          secretKey: process.env.STORAGE_SECRET_KEY,
-        });
-        break;
-      default:
-        this.fastifyInstance = fastify();
+    if (this.useService) {
+      this.storage = new Client({
+        endPoint: this.storageEndpoint,
+        port: this.storagePort,
+        useSSL: this.useSSL,
+        accessKey: this.configService.get('STORAGE_ACCESS_KEY'),
+        secretKey: this.configService.get('STORAGE_SECRET_KEY'),
+      });
+      // this.storage.setRequestOptions({ rejectUnauthorized: false })
+    } else {
+      this.fastifyInstance = fastify();
     }
   }
 
@@ -41,39 +46,34 @@ export class FileUploadService {
     };
     return new Promise((resolve, reject) => {
       this.storage.putObject(
-        process.env.MINIO_BUCKETNAME,
+        this.bucketName,
         filename,
         file.buffer,
         metaData,
-        function (err) {
+        (err) => {
           if (err) {
-            console.log('err: ', err);
+            this.logger.error(`Error uploading to Minio: ${err.message}`);
             reject(err);
           }
+          console.log("useSSL",this.useSSL);
           resolve(
-            `${this.useSSL ? 'https' : 'http'}://${process.env.STORAGE_ENDPOINT
-            }:${process.env.STORAGE_PORT}/${process.env.MINIO_BUCKETNAME
-            }/${filename}`,
+            `${this.useSSL ? 'https' : 'http'}://${this.storageEndpoint}:${this.storagePort}/${this.bucketName}/${filename}`,
           );
         },
       );
     });
   }
 
-  async saveLocalFile(
-    destination: string,
-    filename: string,
-    file: any,
-  ): Promise<string> {
+  async saveLocalFile(destination: string, filename: string, file: any): Promise<string> {
     const uploadsDir = path.join(process.cwd(), destination);
     const localFilePath = path.join(uploadsDir, filename);
     if (!fs.existsSync(uploadsDir)) {
       try {
-        // Create the directory
         fs.mkdirSync(uploadsDir, { recursive: true });
         this.logger.log(`Directory created at ${uploadsDir}`);
       } catch (err) {
         this.logger.error(`Error creating directory: ${err.message}`);
+        throw new InternalServerErrorException('File upload failed: directory creation error');
       }
     } else {
       this.logger.log(`Directory already exists at ${uploadsDir}`);
@@ -82,38 +82,36 @@ export class FileUploadService {
     return destination;
   }
 
-  async upload(
-    file: any,
-    destination: string,
-    filename: string,
-  ): Promise<string> {
+  async upload(file: any, destination: string, filename: string): Promise<string> {
+    console.log(this.useService);
     try {
-      switch (process.env.STORAGE_MODE?.toLowerCase()) {
-        case STORAGE_MODE.MINIO:
-          this.logger.log('using minio');
-          return await this.uploadToMinio(filename, file);
-        default:
-          this.logger.log('writing to storage');
-          return await this.saveLocalFile(destination, filename, file);
+      if (this.useService) {
+        this.logger.log('Using Minio for file upload');
+        return await this.uploadToMinio(filename, file);
+      } else {
+        this.logger.log('Saving file locally');
+        return await this.saveLocalFile(destination, filename, file);
       }
     } catch (error) {
-      this.logger.error(`Error uploading file: ${error}`);
+      this.logger.error(`Error uploading file: ${error.message}`);
       throw new InternalServerErrorException('File upload failed');
     }
   }
 
   async download(destination: string): Promise<any> {
     try {
-      if (this.useMinio) {
-        const fileStream = await this.storage.getObject(
-          process.env.STORAGE_CONTAINER_NAME,
-          destination,
-        );
+      if (this.useService) {
+        const fileStream = await this.storage.getObject(this.bucketName, destination);
         return fileStream;
       } else {
-        const localFilePath = path.join(process.cwd(), 'uploads', destination); // don't use __dirname here that'll point to the dist folder and not the top level folder containing the project (and the uploads folder)
-        const fileStream = fs.createReadStream(localFilePath);
-        return fileStream;
+        const localFilePath = path.join(process.cwd(), 'uploads', destination);
+        if (fs.existsSync(localFilePath)) {
+          const fileStream = fs.createReadStream(localFilePath);
+          return fileStream;
+        } else {
+          this.logger.error('File does not exist');
+          throw new InternalServerErrorException('File does not exist');
+        }
       }
     } catch (error) {
       this.logger.error(`Error downloading file: ${error.message}`);
