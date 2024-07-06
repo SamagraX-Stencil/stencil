@@ -21,7 +21,7 @@ jest.mock('prom-client', () => {
 jest.mock('fs', () => ({
   readFileSync: jest.fn(),
   writeFileSync: jest.fn(),
-  existsSync: jest.fn(), 
+  existsSync: jest.fn(),
 }));
 
 jest.mock('perf_hooks', () => ({
@@ -39,13 +39,15 @@ describe('ResponseTimeInterceptor', () => {
   const histogramTitle = 'test_histogram';
 
   beforeEach(async () => {
-    mockHistogram = new (jest.requireMock('prom-client').Histogram as jest.Mock)();
+    mockHistogram = new (jest.requireMock('prom-client')
+      .Histogram as jest.Mock)();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         {
           provide: ResponseTimeInterceptor,
-          useFactory: () => new ResponseTimeInterceptor(histogramTitle, jsonPath),
+          useFactory: () =>
+            new ResponseTimeInterceptor(histogramTitle, jsonPath),
         },
       ],
     }).compile();
@@ -76,11 +78,18 @@ describe('ResponseTimeInterceptor', () => {
   });
 
   it('should log response time on successful request', async () => {
-    (performance.now as jest.Mock).mockReturnValueOnce(0).mockReturnValueOnce(100);
+    (performance.now as jest.Mock)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(100);
 
-    await interceptor.intercept(mockExecutionContext, mockCallHandler).toPromise();
+    await interceptor
+      .intercept(mockExecutionContext, mockCallHandler)
+      .toPromise();
 
-    expect(mockHistogram.labels).toHaveBeenCalledWith({ statusCode: 200, endpoint: '/test' });
+    expect(mockHistogram.labels).toHaveBeenCalledWith({
+      statusCode: 200,
+      endpoint: '/test',
+    });
     // expect(mockHistogram.observe).toHaveBeenCalledWith(100);
   });
 
@@ -89,20 +98,34 @@ describe('ResponseTimeInterceptor', () => {
     error.status = 500;
     mockCallHandler.handle = jest.fn().mockReturnValue(throwError(() => error));
 
-    (performance.now as jest.Mock).mockReturnValueOnce(0).mockReturnValueOnce(200);
+    (performance.now as jest.Mock)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(200);
 
-    await expect(interceptor.intercept(mockExecutionContext, mockCallHandler).toPromise()).rejects.toThrow('Test Error');
+    await expect(
+      interceptor.intercept(mockExecutionContext, mockCallHandler).toPromise(),
+    ).rejects.toThrow('Test Error');
 
-    expect(mockHistogram.labels).toHaveBeenCalledWith({ statusCode: 500, endpoint: '/test' });
+    expect(mockHistogram.labels).toHaveBeenCalledWith({
+      statusCode: 500,
+      endpoint: '/test',
+    });
     // expect(mockHistogram.observe).toHaveBeenCalledWith(200);
   });
 
   it('should handle JSON parsing errors gracefully', async () => {
-    (fs.readFileSync as jest.Mock).mockImplementationOnce(() => { throw new SyntaxError('Invalid JSON'); });
+    (fs.readFileSync as jest.Mock).mockImplementationOnce(() => {
+      throw new SyntaxError('Invalid JSON');
+    });
 
-    await expect(interceptor.intercept(mockExecutionContext, mockCallHandler).toPromise()).resolves.toBe('test');
+    await expect(
+      interceptor.intercept(mockExecutionContext, mockCallHandler).toPromise(),
+    ).resolves.toBe('test');
 
-    expect(mockHistogram.labels).toHaveBeenCalledWith({ statusCode: 200, endpoint: '/test' });
+    expect(mockHistogram.labels).toHaveBeenCalledWith({
+      statusCode: 200,
+      endpoint: '/test',
+    });
     // expect(mockHistogram.observe).toHaveBeenCalledWith(100);
   });
 });

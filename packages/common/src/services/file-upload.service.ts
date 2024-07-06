@@ -5,7 +5,12 @@ import * as fastify from 'fastify';
 import { InternalServerErrorException, Logger } from '@nestjs/common';
 import { Client } from 'minio';
 import { STORAGE_MODE } from '../interfaces/file-upload.interface';
-import { FileDownloadRequestDTO, FileUploadRequestDTO, SaveToLocaleRequestDTO, UploadToMinioRequestDTO } from './dto/file-upload.dto';
+import {
+  FileDownloadRequestDTO,
+  FileUploadRequestDTO,
+  SaveToLocaleRequestDTO,
+  UploadToMinioRequestDTO,
+} from './dto/file-upload.dto';
 
 export class FileUploadService {
   private readonly storage: any;
@@ -36,7 +41,9 @@ export class FileUploadService {
     }
   }
 
-  async uploadToMinio(uploadToMinioRequestDto: UploadToMinioRequestDTO): Promise<string> {
+  async uploadToMinio(
+    uploadToMinioRequestDto: UploadToMinioRequestDTO,
+  ): Promise<string> {
     const metaData = {
       'Content-Type': uploadToMinioRequestDto.file.mimetype,
     };
@@ -52,17 +59,24 @@ export class FileUploadService {
             reject(err);
           }
           resolve(
-            `${this.useSSL ? 'https' : 'http'}://${process.env.STORAGE_ENDPOINT
-            }:${process.env.STORAGE_PORT}/${process.env.MINIO_BUCKETNAME
-            }/${uploadToMinioRequestDto.filename}`,
+            `${this.useSSL ? 'https' : 'http'}://${
+              process.env.STORAGE_ENDPOINT
+            }:${process.env.STORAGE_PORT}/${process.env.MINIO_BUCKETNAME}/${
+              uploadToMinioRequestDto.filename
+            }`,
           );
         },
       );
     });
   }
 
-  async saveLocalFile(saveToLocalRequestDto : SaveToLocaleRequestDTO): Promise<string> {
-    const uploadsDir = path.join(process.cwd(), saveToLocalRequestDto.destination);
+  async saveLocalFile(
+    saveToLocalRequestDto: SaveToLocaleRequestDTO,
+  ): Promise<string> {
+    const uploadsDir = path.join(
+      process.cwd(),
+      saveToLocalRequestDto.destination,
+    );
     const localFilePath = path.join(uploadsDir, saveToLocalRequestDto.filename);
     if (!fs.existsSync(uploadsDir)) {
       try {
@@ -79,7 +93,7 @@ export class FileUploadService {
     return saveToLocalRequestDto.destination;
   }
 
-  async upload(fileUploadRequestDto : FileUploadRequestDTO): Promise<string> {
+  async upload(fileUploadRequestDto: FileUploadRequestDTO): Promise<string> {
     try {
       switch (process.env.STORAGE_MODE?.toLowerCase()) {
         case STORAGE_MODE.MINIO:
@@ -95,7 +109,7 @@ export class FileUploadService {
     }
   }
 
-  async download(fileDownloadRequestDto : FileDownloadRequestDTO): Promise<any> {
+  async download(fileDownloadRequestDto: FileDownloadRequestDTO): Promise<any> {
     try {
       if (this.useMinio) {
         const fileStream = await this.storage.getObject(
@@ -104,7 +118,11 @@ export class FileUploadService {
         );
         return fileStream;
       } else {
-        const localFilePath = path.join(process.cwd(), 'uploads', fileDownloadRequestDto.destination); // don't use __dirname here that'll point to the dist folder and not the top level folder containing the project (and the uploads folder)
+        const localFilePath = path.join(
+          process.cwd(),
+          'uploads',
+          fileDownloadRequestDto.destination,
+        ); // don't use __dirname here that'll point to the dist folder and not the top level folder containing the project (and the uploads folder)
         const fileStream = fs.createReadStream(localFilePath);
         return fileStream;
       }

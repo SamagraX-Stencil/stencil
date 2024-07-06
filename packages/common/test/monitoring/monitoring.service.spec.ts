@@ -86,7 +86,9 @@ describe('MonitoringService', () => {
     });
 
     it('should log an error if incrementRequestCounter fails', async () => {
-      jest.spyOn(service, 'incrementRequestCounter').mockRejectedValue(new Error('Test Error'));
+      jest
+        .spyOn(service, 'incrementRequestCounter')
+        .mockRejectedValue(new Error('Test Error'));
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       await service.onExit();

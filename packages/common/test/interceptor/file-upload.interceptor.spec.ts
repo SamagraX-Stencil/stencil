@@ -42,9 +42,10 @@ describe('FastifyFileInterceptor', () => {
   });
 
   it('should handle file upload without error', async () => {
-    await expect(interceptor.intercept(mockContext, mockCallHandler)).resolves.not.toThrow();
+    await expect(
+      interceptor.intercept(mockContext, mockCallHandler),
+    ).resolves.not.toThrow();
   });
-
 
   it('should handle errors thrown by multer', async () => {
     const error = new Error('Test Error');
@@ -52,6 +53,8 @@ describe('FastifyFileInterceptor', () => {
       return (req: any, res: any, cb: any) => cb(error);
     });
     interceptor.multer = { single: singleMock }; // Assign the mock directly to the interceptor
-    await expect(interceptor.intercept(mockContext, mockCallHandler)).rejects.toThrow('Test Error');
+    await expect(
+      interceptor.intercept(mockContext, mockCallHandler),
+    ).rejects.toThrow('Test Error');
   });
 });

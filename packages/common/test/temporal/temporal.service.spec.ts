@@ -43,7 +43,7 @@ describe('TemporalWorkflowService', () => {
         args,
         workflowId,
       };
-      
+
       const result = await service.startWorkflow(startWorkflowRequestDTO);
 
       expect(mockWorkflowClient.start).toHaveBeenCalledWith(workflow, {
@@ -62,7 +62,6 @@ describe('TemporalWorkflowService', () => {
         workflow,
       };
 
-
       const result = await service.startWorkflow(startWorkflowRequestDTO);
 
       expect(mockWorkflowClient.start).toHaveBeenCalledWith(workflow, {
@@ -75,13 +74,17 @@ describe('TemporalWorkflowService', () => {
     });
 
     it('should handle workflow client errors', async () => {
-      (mockWorkflowClient.start as jest.Mock).mockRejectedValue(new Error('Workflow start error'));
+      (mockWorkflowClient.start as jest.Mock).mockRejectedValue(
+        new Error('Workflow start error'),
+      );
 
       const startWorkflowRequestDTO: StartWorkflowRequestDTO = {
         workflow: 'testWorkflow',
       };
 
-      await expect(service.startWorkflow(startWorkflowRequestDTO)).rejects.toThrow('Workflow start error');
+      await expect(
+        service.startWorkflow(startWorkflowRequestDTO),
+      ).rejects.toThrow('Workflow start error');
     });
   });
 });
