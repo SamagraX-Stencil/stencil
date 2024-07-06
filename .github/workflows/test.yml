@@ -5,17 +5,14 @@ on:
     branches:
       - main
       - dev
+  
+  push:
+    branches:
+      - '*'
 
 jobs:
   test-package:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dir: 
-          - 'file-upload'
-          - 'interceptor'
-          - 'monitoring'
-          - 'temporal' 
 
     steps:
       - name: Checkout Repository
@@ -25,19 +22,18 @@ jobs:
         uses: actions/setup-node@v4
 
       - name: Install Dependencies for packages/common
-        run: npm ci
+        run: yarn install --frozen-lockfile
         working-directory: packages/common
 
-      - name: Run tests
+      - name: Unit tests for packages/common
         run: yarn run test
-        working-directory: packages/common/test/${{ matrix.dir }} 
+        working-directory: packages/common/test/
 
   test-sample:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         dir:
-          # - '01-all-features'
           - '02-monitoring'
           - '03-response-formatting'
           - '04-logging'
@@ -55,6 +51,6 @@ jobs:
         run: yarn install
         working-directory: sample/${{ matrix.dir }}
 
-      - name: Run Tests
-        run: yarn run test:e2e
-        working-directory: sample/${{ matrix.dir }}/test
+      - name: Run Unit Tests
+        run: yarn run test
+        working-directory: sample/${{ matrix.dir }}
