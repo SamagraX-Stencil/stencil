@@ -7,8 +7,8 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  getHello(): { message: string } {
+    return { message: this.appService.getHello() };
   }
 
   @Get('/error')
@@ -19,6 +19,9 @@ export class AppController {
   @Post()
   test(@Body() randomObjectDto: RandomObjectDto) {
     console.log('randomObject: ', randomObjectDto);
-    return randomObjectDto;
+    return {
+      ...randomObjectDto,
+      message: 'Created successfully',
+    };  
   }
 }
