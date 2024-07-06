@@ -31,7 +31,7 @@ export class FileUploadService {
     this.storageEndpoint = this.configService.get<string>('STORAGE_ENDPOINT');
     this.storagePort = parseInt(this.configService.get('STORAGE_PORT'), 10);
     this.bucketName = this.configService.get<string>('MINIO_BUCKETNAME');
-
+    console.log(this.useService);
     if (this.useService) {
       this.storage = new Client({
         endPoint: this.storageEndpoint,
@@ -55,7 +55,7 @@ export class FileUploadService {
     };
     return new Promise((resolve, reject) => {
       this.storage.putObject(
-         this.configService.get<string>('MINIO_BUCKETNAME'), //
+         this.configService.get<string>('MINIO_BUCKETNAME'), 
         uploadToMinioRequestDto.filename,
         uploadToMinioRequestDto.file.buffer,
         metaData,
@@ -65,7 +65,7 @@ export class FileUploadService {
             reject(err);
           }
           resolve(
-            `${this.useSSL ? 'https' : 'http'}://${this.storageEndpoint}:${this.storagePort}/${this.bucketName}/${filename}`,
+            `${this.useSSL ? 'https' : 'http'}://${this.storageEndpoint}:${this.storagePort}/${this.bucketName}/${uploadToMinioRequestDto.filename}`,
           );
         },
       );
@@ -98,7 +98,7 @@ export class FileUploadService {
   async upload(fileUploadRequestDto: FileUploadRequestDTO): Promise<string> {
     try {
       switch (this.configService.get<string>('STORAGE_MODE')?.toLowerCase()) {
-        case this.configService.get<string>('STORAGE_MODE.MINIO'):  
+        case STORAGE_MODE.MINIO:  
           this.logger.log('using minio');
           return await this.uploadToMinio(fileUploadRequestDto);
         default:
@@ -110,7 +110,6 @@ export class FileUploadService {
       throw new InternalServerErrorException('File upload failed');
     }
   }
-
   async uploadMultiple(
     files: ReadonlyArray<MultipartFile>,
     destination: string,
@@ -136,7 +135,11 @@ export class FileUploadService {
     let c:number = 0;
     for (const file of files) {
       try {
-        const directory = await this.upload(file, destination, filenames[c]);
+        const fileUploadRequestDto: FileUploadRequestDTO = new FileUploadRequestDTO();
+        fileUploadRequestDto.file = file;
+        fileUploadRequestDto.destination = destination;
+        fileUploadRequestDto.filename = filenames[c];
+        const directory = await this.upload(fileUploadRequestDto);
         directories.push(directory);
       } catch (error) {
         this.logger.error(`Error uploading file: ${error}`);
@@ -149,17 +152,17 @@ export class FileUploadService {
 
   async download(destination: string): Promise<any> {
     try {
-      if (this.useMinio) {
+      if (this.useService) {
         const fileStream = await this.storage.getObject(
-          this.configService.get<string>('STORAGE_CONTAINER_NAME'),
-          fileDownloadRequestDto.destination,
+        this.configService.get<string>('STORAGE_CONTAINER_NAME'),
+        destination,
         );
         return fileStream;
       } else {
         const localFilePath = path.join(
           process.cwd(),
           'uploads',
-          fileDownloadRequestDto.destination,
+          destination,
         ); // don't use __dirname here that'll point to the dist folder and not the top level folder containing the project (and the uploads folder)
         const fileStream = fs.createReadStream(localFilePath);
         return fileStream;
