@@ -39,8 +39,6 @@ export class ResponseFormatInterceptor implements NestInterceptor {
   }
 
   private formatErrorMessage(error: any): ReadonlyArray<string> {
-    console.log('error: ', error);
-
     let errMessage =
       error?.response?.message || error.message || 'Internal Server Error';
 
