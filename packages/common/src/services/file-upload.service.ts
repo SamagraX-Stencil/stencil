@@ -31,7 +31,6 @@ export class FileUploadService {
     this.storageEndpoint = this.configService.get<string>('STORAGE_ENDPOINT');
     this.storagePort = parseInt(this.configService.get('STORAGE_PORT'), 10);
     this.bucketName = this.configService.get<string>('MINIO_BUCKETNAME');
-    console.log(this.useService);
     if (this.useService) {
       this.storage = new Client({
         endPoint: this.storageEndpoint,
