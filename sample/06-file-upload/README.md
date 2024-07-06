@@ -79,31 +79,51 @@ $ yarn run test:e2e,
 $ yarn run test:cov
 ```
 
-## Steps To Upload File
+## File Upload Instructions
 
-Send a POST request in the given route: /files/upload-file
+To upload single or multiple files, follow the steps below:
 
-The destination and file name should be passed along with the post request as query parameters.
+### Endpoint
+`POST /files/upload-files`
 
-The file should be attached in the request body (as form-data) with field-name(key) as 'file'
+### Query Parameters
+- **Destination**: Specifies the target directory for the uploaded files. Example: `/files/upload-files?destination=uploads`.
 
-API POST Request:
-/files/upload-file?destination=uploads&filename=ayush.txt
+### Request Body
+The request should include the following form-data fields:
+- **file**: The file(s) to be uploaded.
+- **filename**: The corresponding filename(s) for the uploaded file(s).
 
-The destination and filename fields can be set as per user's choice
+**Note**: Ensure that the number of files and filenames are the same and listed in the correct order.
 
+### Example
+To upload files to the `uploads` directory:
+```
+POST /files/upload-files?destination=uploads
+```
+In the form-data:
+- Add the files under the field name `file`.
+- Add the filenames under the field name `filename`.
 
-## Steps To Download File
+## File Download Instructions
 
-Send a GET request in the given route: /files/download/:destination
+To download a file, follow the steps below:
 
-Note: The deafult starting destination is /uploads of your root directory  (same level as that of node_modules directory)
-      'destination' is relative to this directory
+### Endpoint
+`GET /files/download/:destination`
 
-API GET Request:
-/files/download/resume
+### Parameters
+- **destination**: The relative path to the file within the `uploads` directory. For example, if the file is located at `your_project/uploads/resume`.
 
-The location of this file is 'your_project'/uploads/resume
+### Example
+To download a file located at `your_project/uploads/resume`:
+```
+GET /files/download/resume
+```
+
+**Note**: The default base directory for downloads is `/uploads`, located at the root level of your project directory (same level as the `node_modules` directory).
+
+By following these steps, you can efficiently handle file uploads and downloads within your project.
 
 
 ## Stay in touch
