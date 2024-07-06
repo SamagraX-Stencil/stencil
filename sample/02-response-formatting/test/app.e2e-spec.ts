@@ -31,12 +31,12 @@ describe('AppController (e2e)', () => {
       .expect(File);
   });  
 
-  it('/upload-file (POST)', async () => {
+  it('/upload-files (POST)', async () => {
     const filePath = path.join(__dirname, '../uploads', 'ayush');
     //const fileContent = readFileSync(filePath);
 
     const response = await request(app.getHttpServer())
-      .post('/upload-file')
+      .post('/upload-files')
       .query({ destination: 'uploads', filename: 'cred.txt' })
       .attach('file', filePath)
       .expect(201);
