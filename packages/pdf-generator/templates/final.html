@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Comprehensive PDF</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1, h2, h3 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    table, th, td {
+      border: 1px solid black;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    .page-break {
+        page-break-before: always;
+    }
+    .content-section {
+        margin-bottom: 20px;
+    }
+    .detail-section {
+        margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <h1>{{title}}</h1>
+  <p>{{introduction}}</p>
+  {{#each sections}}
+  <h2>Table of Data</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Item</th>
+        <th>Description</th>
+        <th>Quantity</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each items}}
+      <tr>
+        <td>{{@index}}</td>
+        <td>{{this.item}}</td>
+        <td>{{this.description}}</td>
+        <td>{{this.quantity}}</td>
+        <td>{{this.price}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  
+  <div class="page-break"></div>
+  {{/each}}
+  
+  <h2>Details</h2>
+  <p>{{details}}</p>
+
+</body>
+</html>
