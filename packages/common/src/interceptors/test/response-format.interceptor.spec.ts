@@ -158,7 +158,6 @@ describe('ResponseFormatInterceptor', () => {
     const result = await firstValueFrom(
       interceptor.intercept(context, callHandler),
     );
-    console.log('result: ', result);
     expect(result).toEqual({
       success: false,
       statusCode: HttpStatus.BAD_REQUEST,
