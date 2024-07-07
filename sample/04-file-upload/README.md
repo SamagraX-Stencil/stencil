@@ -83,7 +83,10 @@ $ yarn run test:cov
 
 To upload single or multiple files, follow the steps below:
 
-### Endpoint
+### Endpoint for Single file Upload (Stable)
+`POST /files/upload-file`
+
+### Endpoint for Multiple file Upload
 `POST /files/upload-files`
 
 ### Query Parameters

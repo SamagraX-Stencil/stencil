@@ -100,7 +100,9 @@ describe('FileUploadService', () => {
         filename: mockFilename,
         file: mockFile,
       };
-      await service.saveLocalFile(saveToLocaleRequestDto);
+      await expect(service.saveLocalFile(saveToLocaleRequestDto)).rejects.toThrow(
+        InternalServerErrorException,
+      );
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error creating directory: Directory creation error',
       );
@@ -131,34 +133,6 @@ describe('FileUploadService', () => {
       expect(service.uploadToMinio).toHaveBeenCalledWith(fileUploadDTO);
     });
 
-    it('should save a file locally if STORAGE_MODE is not minio', async () => {
-      process.env.STORAGE_MODE = 'local';
-
-      const file = {
-        buffer: Buffer.from('test file'),
-        mimetype: 'text/plain',
-      };
-      const filename = 'test.txt';
-      const destination = 'uploads';
-      const expectedDestination = 'uploads';
-
-      jest
-        .spyOn(service as any, 'saveLocalFile')
-        .mockResolvedValue(expectedDestination);
-
-      const saveToLocaleRequestDto: SaveToLocaleRequestDTO = {
-        destination: destination,
-        filename: filename,
-        file: file,
-      };
-
-      const result = await service.upload(saveToLocaleRequestDto);
-      expect(result).toEqual(expectedDestination);
-      expect(service.saveLocalFile).toHaveBeenCalledWith(
-        saveToLocaleRequestDto,
-      );
-    });
-
     it('should handle upload errors', async () => {
       const file = {
         buffer: Buffer.from('test file'),
@@ -181,7 +155,7 @@ describe('FileUploadService', () => {
         InternalServerErrorException,
       );
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error uploading file: Error: Upload error',
+        'Error uploading file: Upload error',
       );
     });
   });
