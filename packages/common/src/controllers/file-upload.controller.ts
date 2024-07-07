@@ -13,10 +13,11 @@ import {
   ValidationPipe,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { FastifyFilesInterceptor} from '../interceptors/file-upload.interceptor';
+import { FastifyFilesInterceptor, FastifyFileInterceptor} from '../interceptors/file-upload.interceptor';
 import { MultipartFile } from '../interfaces/file-upload.interface';
 import { FileUploadService } from '../services/file-upload.service';
 import { FastifyReply } from 'fastify';
+import { FileUploadRequestDTO } from '../services/dto/file-upload.dto';
 
 
 interface UploadFilesDto {
@@ -27,6 +28,40 @@ interface UploadFilesDto {
 export class FileUploadController {
   private readonly logger = new Logger(FileUploadController.name);
   constructor(private readonly filesService: FileUploadService) {}
+
+  @Post('upload-file')
+  @UseInterceptors(FastifyFileInterceptor('file', {}))
+  async uploadFile(
+    @UploadedFile() file: MultipartFile,
+    @Query('destination') destination: string,
+    @Query('filename') filename: string,
+  ): Promise<{
+    statusCode?: number;
+    message: string;
+    file?: { url: string } | undefined;
+  }> {
+    try {
+      const fileUploadRequestDto = new FileUploadRequestDTO();
+      fileUploadRequestDto.file = file; 
+      fileUploadRequestDto.destination = destination;
+      fileUploadRequestDto.filename = filename;
+      console.log(fileUploadRequestDto);
+      const directory = await this.filesService.upload(
+        fileUploadRequestDto
+      );
+      return {
+        message: 'File uploaded successfully',
+        file: { url: directory },
+      };
+    } catch (error) {
+      console.error(`Error uploading file: ${error.message}`);
+      return {
+        statusCode: 500,
+        message: 'File upload failed',
+        file: undefined,
+      };
+    }
+  }
 
   @Post('upload-files')
   @UseInterceptors(FastifyFilesInterceptor('file', []))
