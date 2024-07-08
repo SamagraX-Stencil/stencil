@@ -6,6 +6,7 @@ import * as path from 'path';
 import {
   FileUploadRequestDTO,
   SaveToLocaleRequestDTO,
+  UploadToMinioRequestDTO,
 } from 'src/services/dto/file-upload.dto';
 jest.mock('minio');
 jest.mock('fs');
@@ -177,4 +178,44 @@ describe('FileUploadService', () => {
       );
     });
   });
+
+  describe('uploadToMinio', () => {
+    it('should URL-encode the returned link', async () => {
+      jest.setTimeout(10000);
+
+      const mockFile = {
+        buffer: Buffer.from('test file'),
+        mimetype: 'text/plain',
+      };
+      const mockFilename = 'test.txt';
+
+      const uploadToMinioRequestDto: UploadToMinioRequestDTO = {
+        filename: mockFilename,
+        file: mockFile,
+      };
+
+      mockMinioClient.putObject.mockImplementation((
+        bucketName: string,
+        objectName: string,
+        stream: Buffer,
+        metaData: any,
+        callback: (err?: any) => void,
+      ) => {
+        callback(null);  // simulate success
+      });
+
+      service['useSSL'] = false;
+
+      try {
+      const result = await service.uploadToMinio(uploadToMinioRequestDto);
+      const expectedUrl = `http://${process.env.STORAGE_ENDPOINT}:${process.env.STORAGE_PORT}/${process.env.MINIO_BUCKETNAME}/${encodeURIComponent(mockFilename)}`;
+
+
+      expect(result).toEqual(expectedUrl);
+      } catch (error) {
+        fail(error);
+      }
+    });
+  });
+
 });
