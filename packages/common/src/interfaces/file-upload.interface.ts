@@ -14,4 +14,6 @@ export interface MultipartFile {
   encoding: string;
   mimetype: string;
   fields: fastifyMutipart.MultipartFields;
+  size: number;
+  buffer: Buffer;
 }

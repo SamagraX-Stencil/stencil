@@ -15,7 +15,7 @@ import { FastifyReply } from 'fastify';
 
 @Controller('files')
 export class FileUploadController {
-  constructor(private readonly filesService: FileUploadService) {}
+  constructor(private readonly filesService: FileUploadService) { }
 
   @Post('upload-file')
   @UseInterceptors(FastifyFileInterceptor('file', {}))
@@ -29,6 +29,13 @@ export class FileUploadController {
     file?: { url: string } | undefined;
   }> {
     try {
+      // file.size comes from MultiPartFile Interface defined in file-upload.interface
+      if (file.size === 0) {
+        return {
+          statusCode: 400,
+          message: 'empty file uploads are not allowed'
+        }
+      }
       const directory = await this.filesService.upload(
         file,
         destination,
