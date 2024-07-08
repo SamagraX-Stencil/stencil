@@ -1,4 +1,3 @@
-
 # Contributing Guide
 * [Ways to Contribute](#ways-to-contribute)
 * [Find an Issue](#find-an-issue)
