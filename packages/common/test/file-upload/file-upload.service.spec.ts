@@ -213,7 +213,7 @@ describe('FileUploadService', () => {
 
       expect(result).toEqual(expectedUrl);
       } catch (error) {
-        fail(error);
+        throw error;
       }
     });
   });
