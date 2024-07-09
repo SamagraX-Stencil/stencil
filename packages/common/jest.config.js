@@ -4,11 +4,11 @@ module.exports = {
   testMatch: ['**/test/**/*.spec.ts'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'json'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-  },
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.json',
-    },
+    '^.+\\.(t|j)s$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.json',
+      },
+    ],
   },
 };
