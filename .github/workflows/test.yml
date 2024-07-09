@@ -1,0 +1,59 @@
+name: "test"
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+  
+  push:
+    branches:
+      - '*'
+
+jobs:
+  test-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.7
+
+      - name: Use Node.js 
+        uses: actions/setup-node@v4
+
+      - name: Install Dependencies for packages/common
+        run: yarn install --frozen-lockfile
+        working-directory: packages/common
+
+      - name: Unit tests for packages/common
+        run: yarn run test:cov
+        working-directory: packages/common/test/
+
+  test-sample:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir:
+          - '01-monitoring'
+          # - '02-response-formatting'
+          - '03-temporal-package'
+          - '04-file-upload'
+
+    steps: 
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 
+        uses: actions/setup-node@v4
+
+      - name: Install Dependencies for ${{ matrix.dir }}
+        run: yarn install
+        working-directory: sample/${{ matrix.dir }}
+
+      - name: Run Unit Tests
+        run: yarn run test:cov
+        working-directory: sample/${{ matrix.dir }}
+      
+      - name: Run E2E Tests
+        run: yarn run test:e2e 
+        working-directory: sample/${{ matrix.dir }}
