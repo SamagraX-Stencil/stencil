@@ -13,18 +13,5 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
     command: server --console-address ":9001" /data
 
-  createbuckets:
-    image: minio/mc
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-      /usr/bin/mc config host add myminio http://minio:9000 ${MINIO_USERNAME} ${MINIO_PASSWORD};
-      /usr/bin/mc rm -r --force myminio/${MINIO_BUCKETNAME};
-      /usr/bin/mc mb myminio/${MINIO_BUCKETNAME};
-      /usr/bin/mc anonymous set public myminio/${MINIO_BUCKETNAME};
-      exit 0;
-      "
-
 volumes:
   minio-data:
