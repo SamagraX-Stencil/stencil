@@ -118,7 +118,7 @@ export class FileUploadService {
     saveToLocalRequestDto: SaveToLocaleRequestDTO,
   ): Promise<string> {
     const { destination, filename } = saveToLocalRequestDto;
-    const filenameRegex = /^[a-zA-Z0-9_-]+\.[a-zA-Z0-9.]+$/;
+    const filenameRegex = /^[a-zA-Z0-9 _-]+\.[a-zA-Z0-9.]+$/;
 
     if (destination.includes('.')) {
       // make sure that the destination path is just a sequence of proper words with no '.' and filename has no realtive attributes
@@ -127,7 +127,7 @@ export class FileUploadService {
       );
     }
 
-    if (filenameRegex.test(filename)) {
+    if (!filenameRegex.test(filename)) {
       throw new BadRequestException(
         'Provided filename is invalid. We only support letters, numbers and periods in the file name.',
       );
