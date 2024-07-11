@@ -3,7 +3,12 @@ import { InternalServerErrorException, Logger } from '@nestjs/common';
 import { Client } from 'minio';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FileUploadRequestDTO, SaveToLocaleRequestDTO } from 'src/services/dto/file-upload.dto';
+import {
+  FileUploadRequestDTO,
+  SaveToLocaleRequestDTO,
+} from 'src/services/dto/file-upload.dto';
+import { ConfigService } from '@nestjs/config';
+
 jest.mock('minio');
 jest.mock('fs');
 jest.mock('path');
@@ -53,7 +58,7 @@ describe('FileUploadService', () => {
   });
 
   describe('saveLocalFile', () => {
-    const mockFile  = {
+    const mockFile = {
       buffer: Buffer.from('test file'),
     };
     const mockDestination = 'uploads';
@@ -66,23 +71,31 @@ describe('FileUploadService', () => {
     });
 
     it('should save a file locally', async () => {
-      const saveToLocaleRequestDto : SaveToLocaleRequestDTO = {
+      const saveToLocaleRequestDto: SaveToLocaleRequestDTO = {
         destination: mockDestination,
         filename: mockFilename,
         file: mockFile,
       };
       const result = await service.saveLocalFile(saveToLocaleRequestDto);
       expect(result).toEqual(mockDestination);
-      expect(fs.existsSync).toHaveBeenCalledWith(expect.stringContaining(mockDestination));
-      expect(fs.mkdirSync).toHaveBeenCalledWith(expect.stringContaining(mockDestination), { recursive: true });
-      expect(fs.writeFileSync).toHaveBeenCalledWith(expect.stringContaining(`${mockDestination}/${mockFilename}`), mockFile.buffer);
+      expect(fs.existsSync).toHaveBeenCalledWith(
+        expect.stringContaining(mockDestination),
+      );
+      expect(fs.mkdirSync).toHaveBeenCalledWith(
+        expect.stringContaining(mockDestination),
+        { recursive: true },
+      );
+      expect(fs.writeFileSync).toHaveBeenCalledWith(
+        expect.stringContaining(`${mockDestination}/${mockFilename}`),
+        mockFile.buffer,
+      );
     });
 
     it('should handle directory creation errors', async () => {
       (fs.mkdirSync as jest.Mock).mockImplementation(() => {
         throw new Error('Directory creation error');
       });
-      const saveToLocaleRequestDto: SaveToLocaleRequestDTO= {
+      const saveToLocaleRequestDto: SaveToLocaleRequestDTO = {
         destination: mockDestination,
         filename: mockFilename,
         file: mockFile,
@@ -106,7 +119,10 @@ describe('FileUploadService', () => {
       const destination = 'uploads';
       const expectedUrl = `http://${mockConfigService.get('STORAGE_ENDPOINT')}:${mockConfigService.get('STORAGE_PORT')}/${mockConfigService.get('MINIO_BUCKETNAME')}/${filename}`;
 
-      jest.spyOn(service as any, 'uploadToMinio').mockResolvedValue(expectedUrl);
+      jest
+        .spyOn(service as any, 'uploadToMinio')
+        .mockResolvedValue(expectedUrl);
+
       const fileUploadDTO: FileUploadRequestDTO = {
         destination,
         filename,
@@ -126,7 +142,9 @@ describe('FileUploadService', () => {
       const filename = 'test.txt';
       const destination = 'uploads';
 
-      jest.spyOn(service as any, 'uploadToMinio').mockRejectedValue(new Error('Upload error'));
+      jest
+        .spyOn(service as any, 'uploadToMinio')
+        .mockRejectedValue(new Error('Upload error'));
 
       const fileUploadDTO: FileUploadRequestDTO = {
         destination: destination,

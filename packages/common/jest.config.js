@@ -7,3 +7,4 @@ module.exports = {
       transform_regex: ['ts-jest', {tsconfig:'tsconfig.json'}],
     },
   };
+
