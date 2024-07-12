@@ -27,9 +27,7 @@ describe('AppController (e2e)', () => {
   it('/files/upload-file (POST); for file with content', async () => {
     const testFilePath = path.join(__dirname, 'empty.txt');
 
-    // Create an empty.txt file in the same directory as the test
     fs.writeFileSync(testFilePath, 'abcd');
-    console.log(__dirname);
     const mockDestination = 'uploads';
     const mockFilename = 'content.txt';
 
@@ -39,24 +37,10 @@ describe('AppController (e2e)', () => {
       )
       .attach('file', Buffer.from('content'), mockFilename);
 
-    console.log('Response:', response.body);
-
     expect(response.body).toEqual({
       message: 'File uploaded successfully',
       file: { url: `${mockDestination}/${mockFilename}` },
     });
-
-    // Clean up created file from the test directory
-    fs.unlinkSync(testFilePath);
-
-    // Clean up the uploaded file from the uploads directory
-    const uploadedFilePath = path.join(
-      __dirname,
-      `../${mockDestination}/${mockFilename}`,
-    );
-    if (fs.existsSync(uploadedFilePath)) {
-      fs.unlinkSync(uploadedFilePath);
-    }
   });
 
   it('/files/upload-file (POST); for empty file check', async () => {
