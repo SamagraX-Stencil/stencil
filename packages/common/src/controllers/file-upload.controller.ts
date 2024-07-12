@@ -51,6 +51,13 @@ export class FileUploadController {
     file?: { url: string } | undefined;
   }> {
     try {
+      // file.size is an added attribute that comes from MultipartFile Interface defined in file-upload.interface
+      if (file.buffer.length === 0) {
+        return {
+          statusCode: 400,
+          message: 'empty file uploads are not allowed'
+        }
+      }
       const fileUploadRequestDto = new FileUploadRequestDTO();
       fileUploadRequestDto.file = file;
       fileUploadRequestDto.destination = destination;
