@@ -25,7 +25,38 @@ describe('FastifyFileInterceptor', () => {
     expect(nextHandler.handle).toHaveBeenCalled();
   });
 
-  
+  it('should accept files with simple names', async () => {
+    const file = { originalname: 'test.txt', mimetype: 'text/plain' };
+    const context = createMockContext(file);
+    const nextHandler = createMockNextHandler();
+
+    await interceptor.intercept(context, nextHandler);
+
+    expect(context.switchToHttp().getRequest().file).toEqual(file);
+    expect(nextHandler.handle).toHaveBeenCalled();
+  })
+
+  it('should accept files with multiple periods in them', async () => {
+    const file = { originalname: 'text.tar.gz', mimetype: 'application/gzip' };
+    const context = createMockContext(file);
+    const nextHandler = createMockNextHandler();
+
+    await interceptor.intercept(context, nextHandler);
+
+    expect(context.switchToHttp().getRequest().file).toEqual(file);
+    expect(nextHandler.handle).toHaveBeenCalled();
+  })  
+
+  it('should accept files without extensions', async () => {
+    const file = { originalname: 'text', mimetype: 'text/plain' };
+    const context = createMockContext(file);
+    const nextHandler = createMockNextHandler();
+
+    await interceptor.intercept(context, nextHandler);
+
+    expect(context.switchToHttp().getRequest().file).toEqual(file);
+    expect(nextHandler.handle).toHaveBeenCalled();
+  })  
 
   it('should handle errors', async () => {
     const errorMessage = 'File upload failed';
@@ -42,9 +73,9 @@ describe('FastifyFileInterceptor', () => {
   
     await expect(interceptor.intercept(context, nextHandler)).rejects.toThrow(errorMessage);
   });
+
   
-
-
+  
   it('should handle getting an uploaded file when file is not present or null', async () => {
     const contextWithUndefinedFile = createMockContext(undefined);
     const contextWithNullFile = createMockContext(null);
@@ -61,6 +92,7 @@ describe('FastifyFileInterceptor', () => {
 
 
 });
+
 function createMockContext(file: any): ExecutionContext {
   const mockHttpContext = {
     getRequest: jest.fn().mockReturnValue({ raw: { headers: { 'content-type': 'multipart/form-data' } }, file }),
