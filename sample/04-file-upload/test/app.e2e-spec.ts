@@ -23,7 +23,7 @@ describe('AppController (e2e)', () => {
   });
 });
 
-describe('Test that require mock environment variables', () => {
+describe('Tests for correct setup and functioning of file upload service', () => {
   let app: INestApplication;
   const OLD_ENV = process.env;
 
