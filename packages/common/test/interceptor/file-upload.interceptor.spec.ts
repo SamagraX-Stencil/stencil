@@ -58,6 +58,38 @@ describe('FastifyFileInterceptor', () => {
     expect(nextHandler.handle).toHaveBeenCalled();
   })  
 
+  it('should accept files with spaces in their name', async () => {
+    const file = { originalname: 'data file.txt', mimetype: 'text/plain' };
+    const context = createMockContext(file);
+    const nextHandler = createMockNextHandler();
+
+    await interceptor.intercept(context, nextHandler);
+
+    expect(context.switchToHttp().getRequest().file).toEqual(file);
+    expect(nextHandler.handle).toHaveBeenCalled();
+  })  
+
+  it('should throw Error uploading file on illegal filename', async () => {
+    const file = { originalname: '../foo.bar.cls', mimetype: 'text/plain' };
+    const context = createMockContext(file);
+    const nextHandler = createMockNextHandler();
+
+    jest.spyOn(interceptor, 'intercept').mockImplementation(() => {
+        throw new Error('Illegal filename');
+    });
+
+    try {
+        await interceptor.intercept(context, nextHandler);
+    } catch (error) {
+        expect(error).toEqual(new Error('Illegal filename'));
+    }
+
+    expect(nextHandler.handle).not.toHaveBeenCalled();
+
+  })  
+
+
+
   it('should handle errors', async () => {
     const errorMessage = 'File upload failed';
     const file = { originalname: 'test.jpg', mimetype: 'image/jpeg' };
