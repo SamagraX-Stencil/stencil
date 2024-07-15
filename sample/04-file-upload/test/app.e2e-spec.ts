@@ -21,9 +21,42 @@ describe('AppController (e2e)', () => {
       .expect(200)
       .expect('Hello World from file upload.');
   });
+
+  it('should allow empty destination parameter and store in root of STORAGE_ENDPOINT', async () => {
+    // const mockFilename = 'testfile1.txt';
+    // const mockDestination = '';
+
+    const response = await request(app.getHttpServer())
+      .post(`/files/upload-file`)
+      .query({ filename: 'test.txt' })
+      .query({ destination: '' })
+      .attach('file', Buffer.from('content'), 'test.txt');
+
+    expect(response.body).toEqual({
+      message: 'File uploaded successfully',
+      file: { url: `/${'test.txt'}` },
+    });
+  });
+
+  it('throws error if destination does not exist', async () => {
+    const mockDestination = 'notUploads';
+    const mockFilename = 'content.txt';
+
+    try {
+      await request(app.getHttpServer())
+        .post(
+          `/files/upload-file?destination=${mockDestination}&filename=${mockFilename}`,
+        )
+        .attach('file', Buffer.from('content'), mockFilename);
+    } catch (error) {
+      expect(error.message).toBe(
+        'Given destination path does not exist. Please create one.',
+      );
+    }
+  });
 });
 
-describe('Endpoint/directory tests to ensure correct setup of application', () => {
+describe('Test that require mock environment variables', () => {
   let app: INestApplication;
   const OLD_ENV = process.env;
 
@@ -52,37 +85,4 @@ describe('Endpoint/directory tests to ensure correct setup of application', () =
       );
     }
   });
-
-  it('throws error if destination does not exist', async () => {
-    const mockDestination = 'notUploads';
-    const mockFilename = 'content.txt';
-
-    try {
-      await request(app.getHttpServer())
-        .post(
-          `/files/upload-file?destination=${mockDestination}&filename=${mockFilename}`,
-        )
-        .attach('file', Buffer.from('content'), mockFilename);
-    } catch (error) {
-      console.log(error);
-      expect(error.message).toBe(
-        'Given destination path does not exist. Please create one.',
-      );
-    }
-  });
-
-  // it('should allow empty destination parameter and store in root of STORAGE_ENDPOINT', async () => {
-  //   // const mockFilename = 'testfile1.txt';
-  //   // const mockDestination = '';
-
-  //   const response = await request(app.getHttpServer())
-  //     .post(`/files/upload-file?filename=testfile1.txt`)
-  //     .attach('file', Buffer.from('content'), 'testfile1.txt');
-
-  //   console.log(response);
-  //   expect(response.body).toEqual({
-  //     message: 'File uploaded successfully',
-  //     file: { url: `/${'testfile1.txt'}` },
-  //   });
-  // });
 });
