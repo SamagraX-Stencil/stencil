@@ -22,3 +22,67 @@ describe('AppController (e2e)', () => {
       .expect('Hello World from file upload.');
   });
 });
+
+describe('Endpoint/directory tests to ensure correct setup of application', () => {
+  let app: INestApplication;
+  const OLD_ENV = process.env;
+
+  beforeEach(async () => {
+    jest.resetModules();
+    process.env = { ...OLD_ENV };
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+  });
+
+  afterAll(() => {
+    process.env = OLD_ENV;
+  });
+
+  it('Throws error if process.env.STORAGE_ENDPOINT is not set up', async () => {
+    process.env.STORAGE_ENDPOINT = 'this/path/does/not/exist';
+    try {
+      await app.init();
+    } catch (error) {
+      expect(error.name).toBe('InternalServerErrorException');
+      expect(error.message).toBe(
+        'Storage location does not exist. Make sure this location is present and accessible by the application.',
+      );
+    }
+  });
+
+  it('throws error if destination does not exist', async () => {
+    const mockDestination = 'notUploads';
+    const mockFilename = 'content.txt';
+
+    try {
+      await request(app.getHttpServer())
+        .post(
+          `/files/upload-file?destination=${mockDestination}&filename=${mockFilename}`,
+        )
+        .attach('file', Buffer.from('content'), mockFilename);
+    } catch (error) {
+      console.log(error);
+      expect(error.message).toBe(
+        'Given destination path does not exist. Please create one.',
+      );
+    }
+  });
+
+  // it('should allow empty destination parameter and store in root of STORAGE_ENDPOINT', async () => {
+  //   // const mockFilename = 'testfile1.txt';
+  //   // const mockDestination = '';
+
+  //   const response = await request(app.getHttpServer())
+  //     .post(`/files/upload-file?filename=testfile1.txt`)
+  //     .attach('file', Buffer.from('content'), 'testfile1.txt');
+
+  //   console.log(response);
+  //   expect(response.body).toEqual({
+  //     message: 'File uploaded successfully',
+  //     file: { url: `/${'testfile1.txt'}` },
+  //   });
+  // });
+});
