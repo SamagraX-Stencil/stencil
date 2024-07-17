@@ -14,6 +14,8 @@ describe('FastifyFileInterceptor', () => {
     expect(interceptor).toBeDefined();
   });
 
+  // file upload tests 
+
   it('should handle file upload', async () => {
     const file = { originalname: 'test.jpg', mimetype: 'image/jpeg' };
     const context = createMockContext(file);
@@ -87,8 +89,26 @@ describe('FastifyFileInterceptor', () => {
     expect(nextHandler.handle).not.toHaveBeenCalled();
 
   })  
+  
+  it('should handle getting an uploaded file when file is not present or null', async () => {
+    const contextWithUndefinedFile = createMockContext(undefined);
+    const contextWithNullFile = createMockContext(null);
+    const nextHandler = createMockNextHandler();
+  
+    await interceptor.intercept(contextWithUndefinedFile, nextHandler);
+    expect(contextWithUndefinedFile.switchToHttp().getRequest().file).toBeUndefined();
+    expect(nextHandler.handle).toHaveBeenCalled();
+  
+    await interceptor.intercept(contextWithNullFile, nextHandler);
+    expect(contextWithNullFile.switchToHttp().getRequest().file).toBeNull();
+    expect(nextHandler.handle).toHaveBeenCalled();
+  });
 
-
+  it('should throw error when process.env.STORAGE_ENDPOINT is not defined or empty', async () => {
+    // mocking env vars
+    const OLD_ENV = process.env;
+    
+  });
 
   it('should handle errors', async () => {
     const errorMessage = 'File upload failed';
@@ -105,24 +125,6 @@ describe('FastifyFileInterceptor', () => {
   
     await expect(interceptor.intercept(context, nextHandler)).rejects.toThrow(errorMessage);
   });
-
-  
-  
-  it('should handle getting an uploaded file when file is not present or null', async () => {
-    const contextWithUndefinedFile = createMockContext(undefined);
-    const contextWithNullFile = createMockContext(null);
-    const nextHandler = createMockNextHandler();
-  
-    await interceptor.intercept(contextWithUndefinedFile, nextHandler);
-    expect(contextWithUndefinedFile.switchToHttp().getRequest().file).toBeUndefined();
-    expect(nextHandler.handle).toHaveBeenCalled();
-  
-    await interceptor.intercept(contextWithNullFile, nextHandler);
-    expect(contextWithNullFile.switchToHttp().getRequest().file).toBeNull();
-    expect(nextHandler.handle).toHaveBeenCalled();
-  });
-
-
 });
 
 function createMockContext(file: any): ExecutionContext {
