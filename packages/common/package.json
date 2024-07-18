@@ -1,5 +1,5 @@
 {
-  "name": "@samagra-x/stencil",
+  "name": "@yash-test/stencil",
   "version": "0.0.6",
   "description": "Stencil - An opinionated backend framework for NodeJS based on NestJS",
   "author": "Yash Mittal (@techsavvyash) & Team SamagraX",
@@ -33,15 +33,17 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs/axios": "^3.0.2",
     "@nestjs/cache-manager": "^2.1.0",
     "@nestjs/common": "^10.0.0",
-    "@nestjs/config": "^3.2.2",
+    "@nestjs/config": "^3.2.3",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/platform-fastify": "^10.3.0",
     "@temporalio/client": "^1.8.6",
     "@temporalio/worker": "^1.8.6",
     "@types/multer": "^1.4.11",
+    "axios": "^1.7.2",
     "cache-manager": "^5.2.4",
     "cache-manager-redis-store": "2",
     "fastify": "^4.27.0",
@@ -82,6 +84,7 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3"
   },
+
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"
@@ -94,3 +97,4 @@
     ]
   }
 }
+
