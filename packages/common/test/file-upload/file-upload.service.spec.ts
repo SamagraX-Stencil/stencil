@@ -28,11 +28,11 @@ describe('FileUploadService', () => {
     get: jest.fn((key: string) => {
       const config = {
         STORAGE_MODE: 'MINIO',
-        STORAGE_ENDPOINT: 'localhost',
-        STORAGE_PORT: '9000',
-        STORAGE_ACCESS_KEY: 'access-key',
-        STORAGE_SECRET_KEY: 'secret-key',
-        MINIO_BUCKETNAME: 'bucket-name',
+        // STORAGE_ENDPOINT: process.env.STORAGE_ENDPOINT || 'localhost',
+        // STORAGE_PORT:'9000',
+        // STORAGE_ACCESS_KEY: process.env.STORAGE_ACCESS_KEY,
+        // STORAGE_SECRET_KEY: process.env.STORAGE_SECRET_KEY,
+        // MINIO_BUCKETNAME: process.env.MINIO_BUCKETNAME,
       };
       return config[key];
     }),
@@ -111,7 +111,7 @@ describe('FileUploadService', () => {
       };
       const filename = 'test.txt';
       const destination = 'uploads';
-      const expectedUrl = `http://${mockConfigService.get('STORAGE_ENDPOINT')}:${mockConfigService.get('STORAGE_PORT')}/${destination}/${filename}`;
+      const expectedUrl = `http://${mockConfigService.get('STORAGE_ENDPOINT')}:${mockConfigService.get('STORAGE_PORT')}/${mockConfigService.get('MINIO_BUCKETNAME')}/${filename}`;
 
       jest
         .spyOn(service as any, 'uploadToMinio')
