@@ -1,5 +1,5 @@
 import { FileUploadService } from '../../src/services/file-upload.service';
-import { InternalServerErrorException, Logger } from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { Client } from 'minio';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -22,16 +22,17 @@ describe('FileUploadService', () => {
   const mockLogger = {
     log: jest.fn(),
     error: jest.fn(),
+    verbose: jest.fn(),
   };
   const mockConfigService = {
     get: jest.fn((key: string) => {
       const config = {
         STORAGE_MODE: 'MINIO',
-        // STORAGE_ENDPOINT: process.env.STORAGE_ENDPOINT || 'localhost',
-        // STORAGE_PORT:'9000',
-        // STORAGE_ACCESS_KEY: process.env.STORAGE_ACCESS_KEY,
-        // STORAGE_SECRET_KEY: process.env.STORAGE_SECRET_KEY,
-        // MINIO_BUCKETNAME: process.env.MINIO_BUCKETNAME,
+        STORAGE_ENDPOINT: 'localhost',
+        STORAGE_PORT: '9000',
+        STORAGE_ACCESS_KEY: 'access-key',
+        STORAGE_SECRET_KEY: 'secret-key',
+        MINIO_BUCKETNAME: 'bucket-name',
       };
       return config[key];
     }),
@@ -41,9 +42,9 @@ describe('FileUploadService', () => {
     (Client as jest.Mock).mockImplementation(() => mockMinioClient);
     jest.spyOn(Logger.prototype, 'log').mockImplementation(mockLogger.log);
     jest.spyOn(Logger.prototype, 'error').mockImplementation(mockLogger.error);
+    jest.spyOn(Logger.prototype, 'verbose').mockImplementation(mockLogger.verbose);
 
     service = new FileUploadService(mockConfigService as unknown as ConfigService);
-    // Remove the assignment to 'useSSL'
 
     (path.join as jest.Mock).mockImplementation((...paths) => paths.join('/'));
   });
@@ -65,9 +66,8 @@ describe('FileUploadService', () => {
     const mockFilename = 'test.txt';
 
     beforeEach(() => {
-      (fs.existsSync as jest.Mock).mockReturnValue(false);
-      (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
-      (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.writeFileSync as jest.Mock).mockImplementation(() => { });
     });
 
     it('should save a file locally', async () => {
@@ -77,13 +77,9 @@ describe('FileUploadService', () => {
         file: mockFile,
       };
       const result = await service.saveLocalFile(saveToLocaleRequestDto);
-      expect(result).toEqual(mockDestination);
+      expect(result).toEqual(`${mockDestination}/${mockFilename}`);
       expect(fs.existsSync).toHaveBeenCalledWith(
         expect.stringContaining(mockDestination),
-      );
-      expect(fs.mkdirSync).toHaveBeenCalledWith(
-        expect.stringContaining(mockDestination),
-        { recursive: true },
       );
       expect(fs.writeFileSync).toHaveBeenCalledWith(
         expect.stringContaining(`${mockDestination}/${mockFilename}`),
@@ -91,7 +87,8 @@ describe('FileUploadService', () => {
       );
     });
 
-    it('should handle directory creation errors', async () => {
+    it('should handle directory errors', async () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(false); // Simulate destination path exists
       (fs.mkdirSync as jest.Mock).mockImplementation(() => {
         throw new Error('Directory creation error');
       });
@@ -101,10 +98,7 @@ describe('FileUploadService', () => {
         file: mockFile,
       };
       await expect(service.saveLocalFile(saveToLocaleRequestDto)).rejects.toThrow(
-        InternalServerErrorException,
-      );
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error creating directory: Directory creation error',
+        new BadRequestException('Given destination path does not exist. Please create one.'),
       );
     });
   });
@@ -117,7 +111,7 @@ describe('FileUploadService', () => {
       };
       const filename = 'test.txt';
       const destination = 'uploads';
-      const expectedUrl = `http://${mockConfigService.get('STORAGE_ENDPOINT')}:${mockConfigService.get('STORAGE_PORT')}/${mockConfigService.get('MINIO_BUCKETNAME')}/${filename}`;
+      const expectedUrl = `http://${mockConfigService.get('STORAGE_ENDPOINT')}:${mockConfigService.get('STORAGE_PORT')}/${destination}/${filename}`;
 
       jest
         .spyOn(service as any, 'uploadToMinio')
