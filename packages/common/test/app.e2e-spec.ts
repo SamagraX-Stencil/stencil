@@ -2,8 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
-import path from 'path';
-import * as fs from 'fs';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -25,12 +23,10 @@ describe('AppController (e2e)', () => {
   });
 
   it('/files/upload-file (POST); for file with content', async () => {
-    const testFilePath = path.join(__dirname, 'empty.txt');
 
-    fs.writeFileSync(testFilePath, 'abcd');
     const mockDestination = 'uploads';
     const mockFilename = 'content.txt';
-
+    
     const response = await request(app.getHttpServer())
       .post(
         `/files/upload-file?destination=${mockDestination}&filename=${mockFilename}`,
@@ -53,7 +49,6 @@ describe('AppController (e2e)', () => {
       )
       .attach('file', Buffer.from(''), mockFilename);
 
-    console.log('Response:', response.body);
 
     expect(response.body).toEqual({
       statusCode: 400,
