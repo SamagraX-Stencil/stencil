@@ -48,8 +48,6 @@ describe('AppController (e2e)', () => {
       )
       .attach('file', Buffer.from(''), mockFilename);
 
-    console.log('Response:', response.body);
-
     expect(response.body).toEqual({
       statusCode: 400,
       message: 'empty file uploads are not allowed',
