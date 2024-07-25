@@ -56,7 +56,8 @@ async function bootstrap() {
   app.useGlobalInterceptors(
     new ResponseTimeInterceptor(
       'test_global_interceptor',
-      'monitor/grafana/provisioning/dashboards/response_times.json',
+      '<GRAFANA_URL>',
+      '<GRAFANA_TOKEN>'
     ),
   );
 
@@ -65,7 +66,27 @@ async function bootstrap() {
 bootstrap();
 ```
 
-Registering the interceptor as described above would create the `response-times.json` file in your grafana's dashboards folder which would show the response times.
+To setup the interceptor at controller level, you can do it as follows: 
+```typescript
+// app.controller.ts
+// ** other imports **
+import { ResponseTimeInterceptor } from '@samagra-x/stencil';
+
+@Controller()
+@UseInterceptors(
+  new ResponseTimeInterceptor(
+    'test_controller_interceptor',
+    '<GRAFANA_URL>',
+    '<GRAFANA_TOKEN>'
+  ),
+)
+export class AppController {
+  constructor(private readonly appService: AppService) {}
+  // ... rest of the function
+}
+```
+
+<!-- Registering the interceptor as described above would create the `response-times.json` file in your grafana's dashboards folder which would show the response times. -->
 
 ## Grafana API setup
 
@@ -79,7 +100,7 @@ As per [Grafana API Documentation](https://grafana.com/docs/grafana/latest/devel
 ```
 Accept: application/json
 Content-Type: application/json
-Authorization: Bearer eyJrIjoiT0tTcG1pUlY2RnVKZTFVaDFsNFZXdE9ZWmNrMkZYbk
+Authorization: Bearer <API_KEY>
 ```
 
 **Body:**
@@ -88,13 +109,13 @@ Authorization: Bearer eyJrIjoiT0tTcG1pUlY2RnVKZTFVaDFsNFZXdE9ZWmNrMkZYbk
   "dashboard": {
     "id": null,
     "uid": null,
-    "title": "Production Overview",
+    "title": "Response_Times",
     "tags": ["templated"],
     "timezone": "browser",
     "schemaVersion": 16,
     "refresh": "25s"
   },
-  "folderUid": "l3KqBxCMz",
+  "folderUid": "",
   "message": "Made changes to xyz",
   "overwrite": false
 }

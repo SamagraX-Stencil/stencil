@@ -10,8 +10,8 @@ async function bootstrap() {
   const apiToken = configService.get<string>('GRAFANA_API_TOKEN');
 
   app.useGlobalInterceptors(
-    new ResponseTimeInterceptor(
-      'Response_Times',
+     new ResponseTimeInterceptor(
+      'global',
       grafanaBaseURL,
       apiToken,
     ),

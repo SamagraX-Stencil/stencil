@@ -2,7 +2,8 @@ import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } fr
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { Histogram, exponentialBuckets } from 'prom-client';
-import axios from 'axios'; 
+import axios from 'axios';
+import { Mutex } from './mutex';
 
 import {
   generateBaseJSON,
@@ -11,6 +12,7 @@ import {
   getDashboardJSON,
 } from './utils';
 
+const mutex = new Mutex();
 @Injectable()
 export class ResponseTimeInterceptor implements NestInterceptor {
   private histogram: Histogram;
@@ -29,10 +31,10 @@ export class ResponseTimeInterceptor implements NestInterceptor {
     this.dashboardUid = null;
     this.grafanaBaseURL = grafanaBaseURL;
     this.apiToken = apiToken;
-    this.init(histogramTitle, grafanaBaseURL);
+    this.init(histogramTitle);
   }
 
-  async init(histogramTitle: string, grafanaBaseURL: string) {
+  async init(histogramTitle: string) {
     const name = histogramTitle + '_response_time';
     this.histogram = new Histogram({
       name: name,
@@ -40,13 +42,13 @@ export class ResponseTimeInterceptor implements NestInterceptor {
       buckets: exponentialBuckets(1, 1.5, 30),
       labelNames: ['statusCode', 'endpoint'],
     });
-    console.log("apiToken", this.apiToken);
-    console.log("grafanaBaseURL", grafanaBaseURL);
+
+    const unlock = await mutex.lock(); 
     try {
       const dashboardJSONSearchResp = await getDashboardJSON(
         this.apiToken,
-        histogramTitle,
-        grafanaBaseURL,
+        'Response_Times',
+        this.grafanaBaseURL,
       );
       this.dashboardUid =
         dashboardJSONSearchResp.length > 0
@@ -54,61 +56,78 @@ export class ResponseTimeInterceptor implements NestInterceptor {
           : undefined;
       let parsedContent: any;
 
-      if (this.dashboardUid === null || !this.dashboardUid) {
-        parsedContent = generateBaseJSON(histogramTitle);
+      if (this.dashboardUid === undefined || !this.dashboardUid) {
+        parsedContent = generateBaseJSON();
         
-        let isPresent = false;
-
-      parsedContent.dashboard.panels.forEach((panel: any) => {
-        if (
-          panel.title.trim() ===
-          name
-            .split('_')
-            .map((str) => str.charAt(0).toUpperCase() + str.slice(1))
-            .join(' ')
-            .trim()
-        ) {
-          isPresent = true;
+        if (!parsedContent.dashboard.panels) {
+          parsedContent.dashboard.panels = [];
         }
-      });
-      if (isPresent) return;
-       parsedContent.dashboard.panels.push(generateRow(name));
-      } else {
-        parsedContent = await getDashboardByUID(this.dashboardUid, grafanaBaseURL, this.apiToken);
-        
-        
-        let isPresent = false;
-        parsedContent.panels.forEach((panel: any) => {
-          if (
-            panel.title.trim() ===
-            name
-              .split('_')
-              .map((str) => str.charAt(0).toUpperCase() + str.slice(1))
-              .join(' ')
-              .trim()
-          ) {
-            isPresent = true;
+
+        if (!this.isPanelPresent(parsedContent.dashboard.panels, name)) {
+          parsedContent.dashboard.panels.push(generateRow(name));
+        }
+
+        const FINAL_JSON = parsedContent;
+        await axios.post(`${this.grafanaBaseURL}/api/dashboards/db`, FINAL_JSON, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiToken}`
           }
         });
-        if (isPresent) return;
-  
-        parsedContent.panels.push(generateRow(name));
-      }
-      
+      } else {
+        parsedContent = await getDashboardByUID(this.dashboardUid, this.grafanaBaseURL, this.apiToken);
 
-     
-      const FINAL_JSON = parsedContent;
-       await axios.post(`${grafanaBaseURL}/api/dashboards/db`, FINAL_JSON, {
+        if (!parsedContent.dashboard.panels) {
+          parsedContent.dashboard.panels = [];
+        }
+
+        if (!this.isPanelPresent(parsedContent.dashboard.panels, name)) {
+          parsedContent.dashboard.panels.push(generateRow(name));
+        }
+        await this.updateDashboard(parsedContent);
+      }
+      this.logger.log('Successfully added histogram to dashboard!');
+    } catch (err) {
+      console.error('Error updating Grafana JSON!');
+    } finally {
+      unlock();
+    }
+  }
+  isPanelPresent(panels: any[], name: string): boolean {
+    const formattedName = name
+      .split('_')
+      .map((str) => str.charAt(0).toUpperCase() + str.slice(1))
+      .join(' ')
+      .trim();
+
+    return panels.some((panel) => panel.title.trim() === formattedName);
+  }
+
+  async updateDashboard(FINAL_JSON: any) {
+    try {
+      await axios.post(`${this.grafanaBaseURL}/api/dashboards/db`, FINAL_JSON, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.apiToken}`
         }
       });
-      
-      this.logger.log('Successfully added histogram to dashboard!');
     } catch (err) {
-      console.error('Error updating grafana JSON!', err);
+      const updatedDashboard = FINAL_JSON;
+      if (err.response && err.response.data && err.response.data.status === 'version-mismatch') {
+        this.logger.log('Dashboard version mismatch, retrying with latest version...');
+        updatedDashboard.dashboard.version++;
+        await axios.post(`${this.grafanaBaseURL}/api/dashboards/db`, updatedDashboard, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiToken}`
+          }
+        });
+      } else {
+        throw err;
+      }
     }
   }
 

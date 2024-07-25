@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const generateBaseJSON = (histogramTitle) => {
+export const generateBaseJSON = () => {
   return {
     meta: {                                                       
       type: "db",
@@ -9,11 +9,11 @@ export const generateBaseJSON = (histogramTitle) => {
       canAdmin: true,
       canStar: true,
       canDelete: true,
-      slug: histogramTitle,
-      url: `/d/ec1b884b/${histogramTitle}`,
+      slug: 'Response_Times',
+      url: ``,
       expires: "0001-01-01T00:00:00Z",
-      created: "2024-07-03T04:01:29Z",
-      updated: "2024-07-03T04:01:29Z",
+      created: "",
+      updated: "",
       updatedBy: "admin",
       createdBy: "admin",
       version: 1,
@@ -75,8 +75,8 @@ export const generateBaseJSON = (histogramTitle) => {
       },
       timepicker: {},
       timezone: '',
-      title: histogramTitle,
-      uid: null,
+      title: 'Response_Times',
+      uid: 'eofisjfe123',
       version: 1,
       weekStart: '',
     },
@@ -622,9 +622,9 @@ export const getDashboardByUID = async (
         'Authorization': `Bearer ${apiToken}`
       }
     });
-    return resp.data.dashboard;
+return resp.data;
   } catch (err) {
-   console.error('error getting dashboard by uid: ', err);
+   console.error('error getting dashboard by uid');
   }
   return ;
 };
@@ -644,7 +644,7 @@ export const getDashboardJSON = async (
       return item.title && item.title === dashboardTitle;
     });
   } catch (err) {
-    console.error('Error searching dashboards: ', err);
+    console.error('Error searching dashboards');
   }
   return;
 };
