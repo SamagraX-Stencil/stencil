@@ -1,0 +1,11 @@
+STORAGE_CONTAINER_NAME='file-upload-test'
+STORAGE_ENDPOINT='localhost'
+STORAGE_PORT=9000 # please check your minio api port and update here
+STORAGE_USE_SSL='false'  # Set to 'true' if you want to use SSL, or 'false' if not.
+STORAGE_ACCESS_KEY=your-access-key
+STORAGE_SECRET_KEY=your-secret-key
+STORAGE_MODE='' # Do you want to use minio ? 'minio' : 'localhost' | ''
+CLIENT_USE_SSL='false'
+MINIO_USERNAME=ROOTUSER
+MINIO_PASSWORD=CHANGEME123
+MINIO_BUCKETNAME='file-upload-test'
