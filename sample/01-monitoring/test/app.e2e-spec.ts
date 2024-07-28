@@ -3,8 +3,10 @@ import * as request from 'supertest';
 import { INestApplication, Logger } from '@nestjs/common';
 import { AppModule } from '../src/app.module';
 import { ResponseTimeInterceptor } from '@samagra-x/stencil';
-import { delay } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
+import { execSync } from 'child_process';
+import { getDashboardJSON } from '@samagra-x/stencil';
 
 describe('ResponseTimeInterceptor (Integration)', () => {
   
@@ -15,9 +17,12 @@ describe('ResponseTimeInterceptor (Integration)', () => {
   };
   let configService: ConfigService;
   let grafanaBaseURL: string;
-  let apiToken : string;
+  let apiToken: string;
 
   beforeAll(async () => {
+    console.log(process.cwd());
+    execSync('cd monitor && docker-compose up -d');
+
     jest.spyOn(Logger.prototype, 'log').mockImplementation(mockLogger.log);
     jest.spyOn(Logger.prototype, 'error').mockImplementation(mockLogger.error);
 
@@ -27,23 +32,29 @@ describe('ResponseTimeInterceptor (Integration)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
-     configService = app.get(ConfigService);
-     grafanaBaseURL = configService.get<string>('GRAFANA_BASE_URL');
-     apiToken = configService.get<string>('GRAFANA_API_TOKEN');
-  
-  });
+    configService = app.get(ConfigService);
+    grafanaBaseURL = configService.get<string>('GRAFANA_BASE_URL');
+    apiToken = configService.get<string>('GRAFANA_API_TOKEN');
+  },30000);
+
   afterAll(async () => {
     await app.close();
+    execSync('cd monitor && docker-compose down');
   });
 
-// it('should log sucessfull message of the logger', async () => {
-//    expect(mockLogger.log).toHaveBeenCalledWith(
-//      expect.stringContaining('Successfully added histogram to dashboard!')
-//    );
-//    console.log(mockLogger.log.mock.calls); 
-// });
+  const getGrafanaDashboardData = async (dashboardUid: string) => {
+    const response = await axios.get(
+      `${grafanaBaseURL}/api/dashboards/uid/${dashboardUid}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${apiToken}`,
+        },
+      },
+    );
+    return response.data;
+  };
 
-  it('should contain only controller level interceptor response', async () => {
+  it('should contain only controller level interceptor response under prometheus', async () => {
     
     const metrics = await request(app.getHttpServer())
       .get('/metrics')
@@ -51,7 +62,7 @@ describe('ResponseTimeInterceptor (Integration)', () => {
     expect(metrics.text).toContain('controller_response_time');
   });
 
-  it('should contain both controller and global level interceptor response', async () => {
+  it('should contain both controller and global level interceptor response under prometheus', async () => {
     
     app.useGlobalInterceptors(
       new ResponseTimeInterceptor(
@@ -69,4 +80,30 @@ describe('ResponseTimeInterceptor (Integration)', () => {
 
   });
 
+it('should contain both controller and global level interceptor response under grafana', async () => {
+  const dashboardJSONSearchResp = await getDashboardJSON(
+    apiToken,
+    'Response_Times',
+    grafanaBaseURL,
+  );
+  const dashboardUid =
+    dashboardJSONSearchResp.length > 0
+      ? dashboardJSONSearchResp[0]['uid']
+      : undefined;
+
+  const dashboardData = await getGrafanaDashboardData(dashboardUid);
+  const panels = dashboardData.dashboard.panels;
+
+  const globalResponsePanel = panels.find(panel => 
+    panel.title === 'Global Response Time'
+  );
+  expect(globalResponsePanel).toBeDefined();
+
+  const controllerResponsePanel = panels.find(panel => 
+    panel.title === 'Controller Response Time'
+  );
+  expect(controllerResponsePanel).toBeDefined();
+
+ });
+ 
 });
