@@ -1,0 +1,3 @@
+
+GRAFANA_API_TOKEN="" #your grafana api token
+GRAFANA_BASE_URL="http://localhost:7889"
