@@ -21,6 +21,40 @@ describe('AppController (e2e)', () => {
       .expect(200)
       .expect('Hello World!');
   });
+
+  it('/files/upload-file (POST); for file with content', async () => {
+
+    const mockDestination = 'uploads';
+    const mockFilename = 'content.txt';
+    
+    const response = await request(app.getHttpServer())
+      .post(
+        `/files/upload-file?destination=${mockDestination}&filename=${mockFilename}`,
+      )
+      .attach('file', Buffer.from('content'), mockFilename);
+
+    expect(response.body).toEqual({
+      message: 'File uploaded successfully',
+      file: { url: `${mockDestination}/${mockFilename}` },
+    });
+  });
+
+  it('/files/upload-file (POST); for empty file check', async () => {
+    const mockDestination = 'uploads';
+    const mockFilename = 'empty.txt';
+
+    const response = await request(app.getHttpServer())
+      .post(
+        `/files/upload-file?destination=${mockDestination}&filename=${mockFilename}`,
+      )
+      .attach('file', Buffer.from(''), mockFilename);
+
+
+    expect(response.body).toEqual({
+      statusCode: 400,
+      message: 'empty file uploads are not allowed',
+    });
+  });
 });
 
 describe('Tests for correct setup and functioning of file upload service', () => {
