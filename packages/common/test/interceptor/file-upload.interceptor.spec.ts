@@ -104,12 +104,6 @@ describe('FastifyFileInterceptor', () => {
     expect(nextHandler.handle).toHaveBeenCalled();
   });
 
-  it('should throw error when process.env.STORAGE_ENDPOINT is not defined or empty', async () => {
-    // mocking env vars
-    const OLD_ENV = process.env;
-    
-  });
-
   it('should handle errors', async () => {
     const errorMessage = 'File upload failed';
     const file = { originalname: 'test.jpg', mimetype: 'image/jpeg' };
