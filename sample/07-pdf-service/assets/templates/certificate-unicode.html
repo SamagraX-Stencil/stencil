@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate of Achievement</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans&family=Noto+Sans+SC&family=Noto+Sans+Devanagari&display=swap');
+        body {
+            width: 21cm;
+            height: 29.7cm;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Noto Sans', 'Noto Sans SC', 'Noto Sans Devanagari', sans-serif;
+            background-color: #f7f7f7;
+        }
+        .certificate {
+            border: 10px solid #2a2a2a;
+            padding: 50px;
+            text-align: center;
+            width: 80%;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .certificate h1 {
+            font-size: 40px;
+            font-weight: bold;
+            color: #2a2a2a;
+            margin: 20px 0;
+        }
+        .certificate p {
+            font-size: 20px;
+            color: #555555;
+            margin: 10px 0;
+        }
+        .certificate  img {
+            width: 359px;
+            height: 136px;
+            margin-bottom: 10px;
+        }
+        .certificate .name {
+            font-size: 30px;
+            font-weight: bold;
+            color: #2a2a2a;
+            margin: 20px 0;
+        }
+        .certificate .footer {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            text-align: center;
+            font-size: 15px;
+            color: #777777;
+        }
+        .certificate .signature {
+            font-size: 20px;
+            color: #2a2a2a;
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .certificate .signature div {
+            width: 30%;
+            text-align: center;
+        }
+        .certificate .signature img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+        .certificate .signature .line {
+            width: 80%;
+            margin: 0 auto;
+            border-bottom: 2px solid #2a2a2a;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate">
+        <img src="../images/logo.png" alt="Logo">
+        <h1>Certificate of Achievement</h1>
+        <p>This is to certify that</p>
+        <p class="name">{{name}}</p>
+        <p>has successfully completed the course.</p>
+        <div class="signature">
+            <div>
+                <img src="../images/sign.svg" alt="Signature">
+                <div class="line"></div>
+                <p>Instructor</p>
+            </div>
+            <div>
+                <img src="../images/sign.svg" alt="Signature">
+                <div class="line"></div>
+                <p>Principal</p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>Issued on: {{issue_date}}</p>
+        </div>
+    </div>
+</body>
+</html>
