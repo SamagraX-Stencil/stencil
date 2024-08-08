@@ -81,6 +81,8 @@ export function FastifyFileInterceptor(
       next: CallHandler,
     ): Promise<Observable<any>> {
       const ctx = context.switchToHttp();
+      const request = ctx.getRequest();
+      request.raw = request.raw || request;
 
       await new Promise<void>((resolve, reject) =>
         this.multer.single(fieldName)(
