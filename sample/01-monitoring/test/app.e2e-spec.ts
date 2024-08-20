@@ -81,6 +81,12 @@ describe('ResponseTimeInterceptor (Integration)', () => {
   });
 
 it('should contain both controller and global level interceptor response under grafana', async () => {
+
+  if (!apiToken) {
+    console.log('Skipping test: apiToken is not defined or is empty');
+    return;
+  }
+
   const dashboardJSONSearchResp = await getDashboardJSON(
     apiToken,
     'Response_Times',
