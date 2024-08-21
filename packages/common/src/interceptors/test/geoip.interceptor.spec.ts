@@ -18,8 +18,11 @@ describe('GeoIPInterceptor', () => {
   let logger: Logger;
 
   beforeEach(async () => {
+    
     const allowedCountries = ['India'];
-
+    const allowedCities = ['Mumbai'];
+    const allowedCoordinates = [{ lat: 19.0760, lon: 72.8777 }];
+    const allowedGeofences = [{ lat: 19.0760, lon: 72.8777, radius: 100 }];
     const mockHttpService = {
       axiosRef: {
         get: jest.fn(),
@@ -43,7 +46,12 @@ describe('GeoIPInterceptor', () => {
         },
         {
           provide: GeoIPInterceptor,
-          useFactory: () => new GeoIPInterceptor(allowedCountries),
+          useFactory: () => new GeoIPInterceptor({
+            countries: ['India', 'United States'],
+            cities: ['Mumbai', 'New York'],
+            coordinates: [{ lat: 35.6897, lon: 139.6895 }], // Tokyo
+            geofences: [{ lat: 51.5074, lon: -0.1278, radius: 50 }], // London, UK
+          }),
         },
       ],
     }).compile();
