@@ -18,11 +18,7 @@ describe('GeoIPInterceptor', () => {
   let logger: Logger;
 
   beforeEach(async () => {
-    
-    const allowedCountries = ['India'];
-    const allowedCities = ['Mumbai'];
-    const allowedCoordinates = [{ lat: 19.0760, lon: 72.8777 }];
-    const allowedGeofences = [{ lat: 19.0760, lon: 72.8777, radius: 100 }];
+
     const mockHttpService = {
       axiosRef: {
         get: jest.fn(),
