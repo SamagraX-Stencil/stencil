@@ -70,13 +70,10 @@ export class GeoIPInterceptor implements NestInterceptor {
     try {
       const location = await this.getLocation(clientIp);
       const { country, city, lat, lon } = location;
-      console.log(country, city, lat, lon);
-      console.log("a ");
       const isAllowedCountry = this.allowedCountries.length === 0 || this.allowedCountries.includes(country);
       const isAllowedCity = this.allowedCities.length === 0 || this.allowedCities.includes(city);
       const isAllowedCoordinate = this.allowedCoordinates.length === 0 || this.allowedCoordinates.some(coord => coord.lat === lat && coord.lon === lon);
       const isAllowedGeofence = this.allowedGeofences.length === 0 || this.isInGeofence(lat, lon);
-      console.log(isAllowedCountry, isAllowedCity, isAllowedCoordinate, isAllowedGeofence);
       if (isAllowedCountry || isAllowedCity || isAllowedCoordinate || isAllowedGeofence) {
         this.logger.log(`Allowed request from IP: ${clientIp}, Country: ${country}, City: ${city}`);
       } else {
