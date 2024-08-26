@@ -6,6 +6,7 @@ export enum STORAGE_MODE {
 }
 
 export interface MultipartFile {
+  originalname: any;
   buffer(buffer: any): unknown;
   toBuffer: () => Promise<Buffer>;
   file: NodeJS.ReadableStream;

@@ -3,7 +3,7 @@ import * as handlebars from 'handlebars';
 import * as fs from 'fs';
 import puppeteer, { Browser, PDFOptions, PaperFormat } from 'puppeteer';
 import * as csvParser from 'csv-parser';
-import { resolve } from 'path';
+import { resolve, extname } from 'path';
 import { promisify } from 'util';
 import { Readable } from 'stream';
 import { MultipartFile } from '../interfaces/file-upload.interface';
@@ -41,13 +41,25 @@ export class PdfService {
     });
   }
 
-  private compileTemplate(data: Data, templateContent: string): string {
-    const template = handlebars.compile(templateContent);
-    return template(data);
+  private async compileTemplate(data: Data, templateContent: string, templatePath: string): Promise<string> {
+    const ext = extname(templatePath).toLowerCase();
+    let html = '';
+
+    switch (ext) {
+      case '.hbs' || '.html':
+        const template = handlebars.compile(templateContent);
+        html = template(data);
+        break;
+
+      default:
+        throw new Error('Unsupported template format');
+    }
+
+    return html;
   }
 
-  private async createPDF(browser: Browser, data: Data, pdfPath: string, templateContent: string): Promise<void> {
-    const html = this.compileTemplate(data, templateContent);
+  private async createPDF(browser: Browser, data: Data, pdfPath: string, templateContent: string, templatePath: string): Promise<void> {
+    const html = await this.compileTemplate(data, templateContent, templatePath);
     
     const htmlFilePath = `./htmls/${pdfPath.split('/')[2]}.html`;
     await writeFile(htmlFilePath, html);
@@ -59,7 +71,6 @@ export class PdfService {
     };
 
     const page = await browser.newPage();
-
     const absolutePath = resolve(htmlFilePath);
     await page.goto(`file://${absolutePath}`, { waitUntil: 'networkidle0' });
 
@@ -76,6 +87,7 @@ export class PdfService {
     }
 
     const templateContent = templateFile.buffer.toString();
+    const templatePath = templateFile.originalname; 
 
     if (!fs.existsSync('./htmls')) {
       await mkdir('./htmls');
@@ -92,7 +104,7 @@ export class PdfService {
     const pdfPromises = entries.map(entry => {
       const data: Data = { name: entry, issue_date: new Date().toLocaleDateString() };
       const pdfPath = `./certificates/${entry.replace(/\s+/g, '_')}.pdf`;
-      return this.createPDF(browser, data, pdfPath, templateContent);
+      return this.createPDF(browser, data, pdfPath, templateContent, templatePath);
     });
 
     await Promise.all(pdfPromises);
