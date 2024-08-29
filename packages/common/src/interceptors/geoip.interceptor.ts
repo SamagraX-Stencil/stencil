@@ -5,13 +5,10 @@ import {
   CallHandler,
   Logger,
   HttpStatus,
-  InternalServerErrorException,
   HttpException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
-import axios from 'axios';
 import { getDistance } from 'geolib';
 
 interface GeoIPOptions {
@@ -26,7 +23,6 @@ interface GeoIPOptions {
 @Injectable()
 export class GeoIPInterceptor implements NestInterceptor {
   private readonly httpService: HttpService;
-  private readonly configService: ConfigService;
   private readonly logger: Logger;
   private readonly allowedCountries: string[];
   private readonly allowedCities: string[];
@@ -45,7 +41,6 @@ export class GeoIPInterceptor implements NestInterceptor {
   }: GeoIPOptions) {
     this.logger = new Logger('GeoIPInterceptor');
     this.httpService = new HttpService();
-    this.configService = new ConfigService();
     this.allowedCountries = countries;
     this.allowedCities = cities;
     this.allowedCoordinates = coordinates;
@@ -59,14 +54,24 @@ export class GeoIPInterceptor implements NestInterceptor {
     next: CallHandler,
   ): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest();
-  
-    const clientIp =
-      request.headers['ip'] ||
-      request.ip ||
-      request.headers['x-forwarded-for'];
-  
-    this.logger.verbose('Using IP address for geolocation:', clientIp);
-  
+    const response = context.switchToHttp().getResponse();
+    const clientIp = request.headers['ip'];
+    if(clientIp === undefined) {
+      response.status(HttpStatus.BAD_REQUEST).json({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'No IP address found',
+      });
+      throw new Error('No IP address found');
+    }
+    if (!this.isValidIp(clientIp.trim())) {
+      response.status(HttpStatus.BAD_REQUEST).json({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Invalid IP address',
+      });
+      throw new Error('Invalid IP address');
+    }
+    this.logger.verbose(`Using IP address for geolocation: ${clientIp}`);
+
     try {
       const location = await this.getLocation(clientIp);
       const { country, city, lat, lon } = location;
@@ -74,39 +79,43 @@ export class GeoIPInterceptor implements NestInterceptor {
       const isAllowedCity = this.allowedCities.length === 0 || this.allowedCities.includes(city);
       const isAllowedCoordinate = this.allowedCoordinates.length === 0 || this.allowedCoordinates.some(coord => coord.lat === lat && coord.lon === lon);
       const isAllowedGeofence = this.allowedGeofences.length === 0 || this.isInGeofence(lat, lon);
+
       if (isAllowedCountry || isAllowedCity || isAllowedCoordinate || isAllowedGeofence) {
         this.logger.log(`Allowed request from IP: ${clientIp}, Country: ${country}, City: ${city}`);
+        if (request.path === '/') {
+          response.status(HttpStatus.OK).json({
+            statusCode: HttpStatus.OK,
+            message: `Allowed request from IP: ${clientIp}, Country: ${country}, City: ${city}`,
+          });
+          return of(null);
+        }
+        return next.handle(); 
       } else {
-        this.denyRequest(clientIp, country, city);
+        this.logger.error(`Denying request from IP: ${clientIp}, Country: ${country}, City: ${city}`);
+        response.status(this.accessDeniedStatus).json({
+          statusCode: this.accessDeniedStatus,
+          message: this.accessDeniedMessage,
+        });
+        return of(null); 
       }
-  
     } catch (err) {
-      this.handleError(err);
+      this.handleError(err, response);
     }
-    return next.handle();
-  }
-  
-
-  private denyRequest(ip: string, country: string, city: string): void {
-    this.logger.error(
-      `Denying request from IP: ${ip} country: ${country} city: ${city}`,
-    );
-    throw new HttpException(
-      this.accessDeniedMessage,
-      this.accessDeniedStatus,
-    );
   }
 
-  private handleError(err: any): void {
+  private handleError(err: any, response: any): void {
     if (err instanceof HttpException) {
-      this.logger.error(
-        `HttpException: ${err.message} with status code: ${err.getStatus()}`
-      );
+      this.logger.error(`HttpException: ${err.message} with status code: ${err.getStatus()}`);
+      response.status(err.getStatus()).json({
+        statusCode: err.getStatus(),
+        message: err.message,
+      });
     } else {
-      this.logger.error('Unexpected error: ', err.message);
-      throw new InternalServerErrorException(
-        'Error occurred while reading the geoip database',
-      );
+      this.logger.error(`Unexpected error: ${err.message}`);
+      response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Error occurred while processing the request',
+      });
     }
   }
 
@@ -114,21 +123,30 @@ export class GeoIPInterceptor implements NestInterceptor {
     return this.allowedGeofences.some(geofence => {
       const distance = getDistance(
         { latitude: lat, longitude: lon },
-        { latitude: geofence.lat, longitude: geofence.lon }
+        { latitude: geofence.lat, longitude: geofence.lon },
       );
-      return distance <= geofence.radius*1000;
+      return distance <= geofence.radius * 1000;
     });
   }
-  async getLocation(ip: string): Promise<any> {
+
+   async getLocation(ip: string): Promise<any> {
     try {
-      const response = await this.httpService.axiosRef.get(
-        `http://geoip.samagra.io/city/${ip}`,
-      );
-      return response.data; 
+      const response = await this.httpService.axiosRef.get(`http://geoip.samagra.io/city/${ip}`);
+      return response.data;
     } catch (err) {
-      throw new InternalServerErrorException(
+      this.logger.error(`Error occurred while reading the geoip database: ${err.message}`);
+      throw new HttpException(
         'Error occurred while reading the geoip database',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
+
+  private isValidIp(ip: string): boolean {
+    const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}([0-9a-fA-F]{1,4}|:)$/;
+
+    return ipv4Regex.test(ip) || ipv6Regex.test(ip);
+  }
+  
 }

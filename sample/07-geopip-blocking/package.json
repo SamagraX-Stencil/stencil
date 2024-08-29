@@ -25,7 +25,7 @@
     "@nestjs/config": "^3.2.2",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
-    "@samagra-x/stencil": "^0.0.2",
+    "@samagra-x/stencil": "^0.0.6",
     "axios": "^1.7.4",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1"

@@ -1,148 +1,150 @@
-import { ExecutionContext, HttpException, HttpStatus, Logger } from '@nestjs/common';
-import { Observable, of } from 'rxjs';
+// src/geoip.interceptor.spec.ts
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication, HttpStatus } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from '../src/app.module'; // Import your AppModule or the module you are testing
+import { GeoIPInterceptor } from '@samagra-x/stencil'; // Import the interceptor
+import exp from 'constants';
 
-describe('GeoIpInterceptor', () => {
-  let interceptor: any; 
-  const logger = new Logger('GeoIpInterceptorTest');
+describe('GeoIPInterceptor E2E', () => {
+  let app: INestApplication;
 
-  beforeEach(() => {
-    interceptor = {
-      intercept: async (executionContext: ExecutionContext, callHandler: any): Promise<Observable<any>> => {
-        const ip = executionContext.switchToHttp().getRequest().headers['x-forwarded-for'] || '';
-        const allowedCountries = ['India'];
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
 
-        if (ip.includes(':')) {
-          if (allowedCountries.includes('India')) {
-            return of(callHandler.handle());
-          } else {
-            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-          }
-        } else {
-          if (allowedCountries.includes('India')) {
-            return of(callHandler.handle());
-          } else {
-            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-          }
-        }
-      },
-    };
+    app = moduleFixture.createNestApplication();
+    app.useGlobalInterceptors(new GeoIPInterceptor({
+      countries: ['India', 'United States'],
+      cities: ['Mumbai', 'New York'],
+      coordinates: [{ lat: 35.6897, lon: 139.6895 }], // Tokyo
+      geofences: [{ lat: 51.5074, lon: -0.1278, radius: 50 }], // London, UK
+    }));
+    await app.init();
   });
 
-  it('should allow a request from India', async () => {
-    const ip = '115.240.90.163'; 
-    logger.log(`Testing with IP: ${ip}`);
-    const executionContext = createMockExecutionContext(ip);
-    const callHandler = {
-      handle: jest.fn().mockReturnValue(of({})),
-    };
+  it('should allow request from allowed country', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', '115.240.90.163'); // IP from India
 
-    await expect(
-      interceptor.intercept(executionContext, callHandler),
-    ).resolves.toBeInstanceOf(Observable);
+    expect(response.status).toBe(HttpStatus.OK);
   });
 
-  it('should allow a request from India with IPv6', async () => {
-    const ip = '2401:4900:1c70:140b:fd0c:65a1:64e2:81bb';
-    logger.log(`Testing with IP: ${ip}`);
-    const executionContext = createMockExecutionContext(ip);
-    const callHandler = {
-      handle: jest.fn().mockReturnValue(of({})),
-    };
+  it('should allow request from allowed country ipv6', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', '2401:4900:1c70:140b:fd0c:65a1:64e2:81bb'); // IP from US
 
-    await expect(
-      interceptor.intercept(executionContext, callHandler),
-    ).resolves.toBeInstanceOf(Observable);
+    expect(response.status).toBe(HttpStatus.OK);
   });
 
-  it('should allow a request from outside India', async () => {
-    const ip = '128.101.101.101'; 
-    logger.log(`Testing with IP: ${ip}`);
-    const executionContext = createMockExecutionContext(ip);
-    const callHandler = {
-      handle: jest.fn().mockReturnValue(of({})),
-    };
+  it('should deny request from disallowed country', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', '120.121.121.123'); // IP from a country not in allowed list
 
-    await expect(
-      interceptor.intercept(executionContext, callHandler),
-    ).resolves.toBeInstanceOf(Observable);
+    expect(response.statusCode).toBe(HttpStatus.FORBIDDEN);
+    expect(response.text).toContain('Access Denied');
   });
 
-  it('should allow a request from machine local IP', async () => {
-    const ip = '127.0.0.1'; 
-    logger.log(`Testing with IP: ${ip}`);
-    const executionContext = createMockExecutionContext(ip);
-    const callHandler = {
-      handle: jest.fn().mockReturnValue(of({})),
-    };
+  it('should allow request from IP within geofence', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', '101.36.96.0'); // London, UK within geofence (use coordinates within 50 km of London)
 
-    await expect(
-      interceptor.intercept(executionContext, callHandler),
-    ).resolves.toBeInstanceOf(Observable);
+    expect(response.status).toBe(HttpStatus.OK);
   });
 
-  it('should allow a request from a fake spoofed IP', async () => {
-    const ip = '1607:e054:4d04:8f9c:6efa:761f:b964:57b6';
-    logger.log(`Testing with IP: ${ip}`);
-    const executionContext = createMockExecutionContext(ip);
-    const callHandler = {
-      handle: jest.fn().mockReturnValue(of({})),
-    };
+  it('should allow request from allowed city', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', '115.240.90.163'); // IP from Mumbai, India
 
-    await expect(
-      interceptor.intercept(executionContext, callHandler),
-    ).resolves.toBeInstanceOf(Observable);
+    expect(response.status).toBe(HttpStatus.OK);
   });
 
-  it('should allow IPv6 addresses outside India', async () => {
-    const ip = '2607:f8b0:4005:080a:0000:0000:0000:200e'; 
-    logger.log(`Testing with IP: ${ip}`);
-    const executionContext = createMockExecutionContext(ip);
-    const callHandler = {
-      handle: jest.fn().mockReturnValue(of({})),
-    };
+  it('should deny request if IP is not provided', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/');
 
-    await expect(
-      interceptor.intercept(executionContext, callHandler),
-    ).resolves.toBeInstanceOf(Observable);
+    expect(response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+    expect(response.text).toContain('No IP address found');
   });
 
-  it('should allow IPv4 addresses outside India', async () => {
-    const ip = '8.8.8.8'; 
-    logger.log(`Testing with IP: ${ip}`);
-    const executionContext = createMockExecutionContext(ip);
-    const callHandler = {
-      handle: jest.fn().mockReturnValue(of({})),
-    };
+  it('should handle request with malformed IP', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', 'not_an_ip');
 
-    await expect(
-      interceptor.intercept(executionContext, callHandler),
-    ).resolves.toBeInstanceOf(Observable);
+    expect(response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+    expect(response.text).toContain('Invalid IP address');
   });
 
-  it('should block IPv6 addresses outside India', async () => {
-    const ip = '2607:f8b0:4005:080a:0000:0000:0000:200e'; 
-    logger.log(`Testing with IP: ${ip}`);
-    const executionContext = createMockExecutionContext(ip);
-    const callHandler = {
-      handle: jest.fn().mockReturnValue(of({})),
-    };
+  it('should handle request with empty IP value', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', '');
+
+    expect(response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+    expect(response.text).toContain('Invalid IP address');
+  });
+
+  it('should deny request if neither city nor country match allowed values', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', '203.0.113.0'); // Private IP
+
+    expect(response.statusCode).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+    expect(response.text).toContain('Error occurred while reading the geoip database');
+  });
+
+
+  it('should deny request from IP in a non-allowed country', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', '200.160.0.8'); // IP from Brazil (not in allowed countries)
+
+    expect(response.statusCode).toBe(HttpStatus.FORBIDDEN);
+    expect(response.text).toContain('Access Denied');
+  });
+
+  it('should deny request with invalid IP format', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', '256.256.256.256'); // Invalid IP
+
+    expect(response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+    expect(response.text).toContain('Invalid IP address');
+  });
+
+  it('should handle request with valid IP from non-specified city but allowed country', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', '104.244.42.1'); // IP from a city not in allowed list but in allowed country (US)
+
+    expect(response.status).toBe(HttpStatus.OK);
+  });
+
+  it('should allow request from allowed IP within allowed coordinates', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', '118.27.27.9'); // IP from Tokyo (within allowed coordinates)
+
+    expect(response.status).toBe(HttpStatus.OK);
+  });
+
+  it('should deny request from IP near the edge of allowed geofence', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/')
+      .set('ip', '81.129.0.0'); // Example IP address near but outside the geofence
   
-    try {
-      await interceptor.intercept(executionContext, callHandler);
-    } catch (error) {
-      console.error('Interceptor failed:', error);
-    }
-  
-    expect(callHandler.handle).toHaveBeenCalled(); 
+    expect(response.statusCode).toBe(HttpStatus.FORBIDDEN);
+    expect(response.text).toContain('Access Denied');
   });
-
-  function createMockExecutionContext(ip: string): ExecutionContext {
-    return {
-      switchToHttp: () => ({
-        getRequest: () => ({
-          headers: { 'x-forwarded-for': ip },
-        }),
-      }),
-    } as ExecutionContext;
-  }
+  
+  afterAll(async () => {
+    await app.close();
+  });
 });
