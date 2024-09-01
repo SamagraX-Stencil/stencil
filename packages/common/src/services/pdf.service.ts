@@ -78,7 +78,7 @@ export class PdfService {
     await page.close();
   }
 
-  async generateCertificates(csvFile: MultipartFile, templateFile: MultipartFile): Promise<void> {
+  async generateCertificates(csvFile: MultipartFile, templateFile: MultipartFile, outputPath?: string): Promise<void> {
     const entries = await this.readCSV(csvFile);
 
     if (!entries || entries.length === 0) {
@@ -87,13 +87,16 @@ export class PdfService {
     }
 
     const templateContent = templateFile.buffer.toString();
-    const templatePath = templateFile.originalname; 
+    const templatePath = templateFile.originalname;
 
-    if (!fs.existsSync('./htmls')) {
-      await mkdir('./htmls');
+    const htmlDir = './htmls';
+    const pdfDir = outputPath || './certificates';
+
+    if (!fs.existsSync(htmlDir)) {
+      await mkdir(htmlDir);
     }
-    if (!fs.existsSync('./certificates')) {
-      await mkdir('./certificates');
+    if (!fs.existsSync(pdfDir)) {
+      await mkdir(pdfDir);
     }
 
     const browser = await puppeteer.launch({
@@ -103,7 +106,7 @@ export class PdfService {
 
     const pdfPromises = entries.map(entry => {
       const data: Data = { name: entry, issue_date: new Date().toLocaleDateString() };
-      const pdfPath = `./certificates/${entry.replace(/\s+/g, '_')}.pdf`;
+      const pdfPath = `${pdfDir}/${entry.replace(/\s+/g, '_')}.pdf`;
       return this.createPDF(browser, data, pdfPath, templateContent, templatePath);
     });
 

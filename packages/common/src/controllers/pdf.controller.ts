@@ -3,6 +3,7 @@ import {
   Post,
   UploadedFiles,
   UseInterceptors,
+  Headers,
 } from '@nestjs/common';
 import { FastifyFilesInterceptor } from '../interceptors/file-upload.interceptor';
 import { MultipartFile } from '../interfaces/file-upload.interface';
@@ -19,6 +20,7 @@ export class PdfController {
   ]))
   async generateCertificates(
     @UploadedFiles() files: { file?: MultipartFile[]; template?: MultipartFile[] },
+    @Headers('output-path') outputPath?: string,  
   ): Promise<{ statusCode?: number; message: string; errors?: any }> {
     try {
       const csvFile = files.file?.[0];
@@ -29,7 +31,7 @@ export class PdfController {
       }
 
       console.time('Execution Time');
-      await this.pdfService.generateCertificates(csvFile, templateFile);
+      await this.pdfService.generateCertificates(csvFile, templateFile, outputPath);  
       console.timeEnd('Execution Time');
       return { message: 'Certificates generated successfully' };
     } catch (error) {
