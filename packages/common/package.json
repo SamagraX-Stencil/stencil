@@ -41,6 +41,7 @@
     "@temporalio/client": "^1.8.6",
     "@temporalio/worker": "^1.8.6",
     "@types/multer": "^1.4.11",
+    "@types/unzipper": "^0.10.10",
     "cache-manager": "^5.2.4",
     "cache-manager-redis-store": "2",
     "csv-parser": "^3.0.0",

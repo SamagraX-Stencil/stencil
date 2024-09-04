@@ -12,6 +12,7 @@ import FastifyMulter from 'fastify-multer';
 import { Options, Multer } from 'multer';
 
 type MulterInstance = any;
+type Field = { name: string; maxCount?: number };
 export function FastifyFileInterceptor(
   fieldName: string,
   localOptions: Options,
@@ -57,7 +58,7 @@ export function FastifyFileInterceptor(
 
 // for multiple files
 export function FastifyFilesInterceptor(
-  fields: Array<{ name: string }>,
+  fields: Field[],
   localOptions?: Options,
 ): Type<NestInterceptor> {
   class MixinInterceptor implements NestInterceptor {
