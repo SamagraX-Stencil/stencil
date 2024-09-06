@@ -1,4 +1,6 @@
 # Stencil
+[![Coverage Status](https://coveralls.io/repos/github/Savio629/stencil/badge.svg?branch=cov)](https://coveralls.io/github/Savio629/stencil?branch=cov)
+
 
 Stencil is an opinionated backend framework based on [NestJS](https://nestjs.com), built keeping Developer Experience and Developer Productivity in mind. 
 Stencil aims to reduce the development setup times so that the developers writing backend services can spend more time writing business logic unique to the service rather than setting up common tooling which is shared across projects. 
