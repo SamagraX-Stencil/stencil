@@ -82,13 +82,10 @@ export class GeoIPInterceptor implements NestInterceptor {
 
       if (isAllowedCountry || isAllowedCity || isAllowedCoordinate || isAllowedGeofence) {
         this.logger.log(`Allowed request from IP: ${clientIp}, Country: ${country}, City: ${city}`);
-        if (request.path === '/') {
           response.status(HttpStatus.OK).json({
             statusCode: HttpStatus.OK,
             message: `Allowed request from IP: ${clientIp}, Country: ${country}, City: ${city}`,
           });
-          return of(null);
-        }
         return next.handle(); 
       } else {
         this.logger.error(`Denying request from IP: ${clientIp}, Country: ${country}, City: ${city}`);
@@ -148,7 +145,7 @@ export class GeoIPInterceptor implements NestInterceptor {
     }
   }
 
-  private isValidIp(ip: string): boolean {
+  public isValidIp(ip: string): boolean {
     const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
     const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}([0-9a-fA-F]{1,4}|:)$/;
 
