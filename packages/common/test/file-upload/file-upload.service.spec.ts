@@ -116,6 +116,7 @@ describe('FileUploadService', () => {
       jest
         .spyOn(service as any, 'uploadToMinio')
         .mockResolvedValue(expectedUrl);
+
       const fileUploadDTO: FileUploadRequestDTO = {
         destination,
         filename,
