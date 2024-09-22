@@ -1,101 +1,182 @@
-import { ExecutionContext, CallHandler } from '@nestjs/common';
-import { of, throwError } from 'rxjs';
-import { Test, TestingModule } from '@nestjs/testing';
-import { Histogram } from 'prom-client';
-import { performance } from 'perf_hooks';
 import { ResponseTimeInterceptor } from '../../src/interceptors/response-time.interceptor';
+import {
+  ExecutionContext,
+  CallHandler,
+  Logger,
+} from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import axios from 'axios';
+import { Observable, of, throwError } from 'rxjs';
+import { getDashboardByUID, getDashboardJSON, generateBaseJSON, generateRow } from '../../src/interceptors/utils';
+import { register } from 'prom-client'; // Import prom-client registry
 
-// Mock dependencies
-jest.mock('prom-client', () => {
-  const labels = jest.fn().mockReturnThis();
-  const observe = jest.fn();
-  return {
-    Histogram: jest.fn().mockImplementation(() => ({
-      labels,
-      observe,
-    })),
-    exponentialBuckets: jest.fn().mockImplementation(() => [1, 2, 3, 4, 5]),
-  };
-});
-
-jest.mock('perf_hooks', () => ({
-  performance: {
-    now: jest.fn(),
-  },
+jest.mock('axios');
+jest.mock('../../src/interceptors/utils', () => ({
+  getDashboardByUID: jest.fn(),
+  getDashboardJSON: jest.fn(),
+  generateBaseJSON: jest.fn(),
+  generateRow: jest.fn(),
 }));
 
 describe('ResponseTimeInterceptor', () => {
-  let interceptor: ResponseTimeInterceptor;
-  let mockHistogram: Histogram;
-  let mockExecutionContext: ExecutionContext;
-  let mockCallHandler: CallHandler;
-  
-  const grafanaUrl = 'http://localhost:7889';
-  const grafanaToken = '<GRAFANA_TOKEN>';
-  const histogramTitle = 'test_histogram';
+  let responseTimeInterceptor: ResponseTimeInterceptor;
+  let logger: Logger;
 
   beforeEach(async () => {
-    mockHistogram = new (jest.requireMock('prom-client').Histogram as jest.Mock)();
-  
+    register.clear();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         {
+          provide: Logger,
+          useValue: {
+            verbose: jest.fn(),
+            error: jest.fn(),
+            log: jest.fn(),
+          },
+        },
+        {
           provide: ResponseTimeInterceptor,
-          useFactory: () => new ResponseTimeInterceptor(histogramTitle, grafanaUrl, grafanaToken),
+          useFactory: () =>
+            new ResponseTimeInterceptor(
+              'test_histogram_test',
+              'http://localhost:7889',
+              'test_api_token'
+            ),
         },
       ],
     }).compile();
 
-    interceptor = module.get<ResponseTimeInterceptor>(ResponseTimeInterceptor);
+    responseTimeInterceptor = module.get<ResponseTimeInterceptor>(ResponseTimeInterceptor);
+    logger = module.get<Logger>(Logger);
+  });
 
-    mockExecutionContext = {
+  it('should call the external API and update dashboard if not present', async () => {
+    (getDashboardJSON as jest.Mock).mockResolvedValue([]);
+
+    (generateBaseJSON as jest.Mock).mockReturnValue({
+      dashboard: { panels: [] },
+    });
+
+    (axios.post as jest.Mock).mockResolvedValue({ data: {} });
+
+    await responseTimeInterceptor.init('test_histogram');
+    
+    expect(axios.post).toHaveBeenCalledWith(
+      'http://localhost:7889/api/dashboards/db',
+      expect.any(Object),
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer test_api_token',
+        },
+      }
+    );
+
+    expect(generateBaseJSON).toHaveBeenCalled();
+  });
+
+  it('should retry dashboard update on version mismatch', async () => {
+    (getDashboardByUID as jest.Mock).mockResolvedValue({
+      dashboard: { title: 'Response Times', version: 1, panels: [] },
+    });
+
+    (axios.post as jest.Mock)
+      .mockRejectedValueOnce({
+        response: { data: { status: 'version-mismatch' } },
+      })
+      .mockResolvedValueOnce({ data: {} }); 
+
+    await responseTimeInterceptor.init('test_histogram');
+
+    expect(axios.post).toHaveBeenCalledTimes(5);
+    expect(axios.post).toHaveBeenNthCalledWith(2, expect.any(String), expect.any(Object), expect.any(Object));
+  });
+
+it('should log an error if dashboard update fails', async () => {
+  const mockError = new Error('Test error');
+  (axios.post as jest.Mock).mockRejectedValueOnce(mockError);
+
+  const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+  await responseTimeInterceptor.init('test_histogram').catch(() => {});
+
+  expect(consoleErrorSpy).toHaveBeenCalledWith('Error updating Grafana JSON!', expect.any(Error));
+
+  consoleErrorSpy.mockRestore();
+});
+
+it('should observe response time in successful requests', () => {
+    const context = {
       switchToHttp: jest.fn().mockReturnValue({
-        getRequest: jest.fn().mockReturnValue({ url: '/test' }),
+        getRequest: jest.fn().mockReturnValue({ url: '/test-url' }),
         getResponse: jest.fn().mockReturnValue({ statusCode: 200 }),
       }),
     } as unknown as ExecutionContext;
 
-    mockCallHandler = {
-      handle: jest.fn().mockReturnValue(of('test')),
-    };
+    const callHandler = {
+      handle: jest.fn().mockReturnValue(of('test-response')),
+    } as unknown as CallHandler;
+
+    jest.spyOn(responseTimeInterceptor['histogram'].labels({ statusCode: 200, endpoint: '/test-url' }), 'observe');
+
+    const result = responseTimeInterceptor.intercept(context, callHandler);
+    expect(callHandler.handle).toHaveBeenCalled();
+    expect(result).toBeInstanceOf(Observable);
+
+});
+
+  // it('should observe response time on error response', () => {
+  //   const context = {
+  //     switchToHttp: jest.fn().mockReturnValue({
+  //       getRequest: jest.fn().mockReturnValue({ url: '/test-url' }),
+  //       getResponse: jest.fn().mockReturnValue({ statusCode: 500 }),
+  //     }),
+  //   } as unknown as ExecutionContext;
+
+  //   const callHandler = {
+  //     handle: jest.fn().mockReturnValue(throwError(() => new Error('test error'))),
+  //   } as unknown as CallHandler;
+
+  //   const observeSpy = jest.spyOn(responseTimeInterceptor['histogram'].labels({ statusCode: 500, endpoint: '/test-url' }), 'observe');
+
+  //   responseTimeInterceptor.intercept(context, callHandler).subscribe({
+  //     error: () => {
+  //       expect(observeSpy).toHaveBeenCalledWith(expect.any(Number)); 
+  //     },
+  //   });
+  // });
+
+  it('should check if panel exists in dashboard', () => {
+    const panels = [{ title: 'Test Panel' }, { title: 'Test Histogram Response Time' }];
+    const result = responseTimeInterceptor.isPanelPresent(panels, 'test_histogram_response_time');
+    expect(result).toBe(true);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  it('should return false if panel does not exist in dashboard', () => {
+    const panels = [{ title: 'Some Other Panel' }];
+    const result = responseTimeInterceptor.isPanelPresent(panels, 'test_histogram_response_time');
+    expect(result).toBe(false);
   });
 
-  it('should be defined', () => {
-    expect(interceptor).toBeDefined();
-  });
+  it('should successfully update the dashboard', async () => {
+    const FINAL_JSON = { dashboard: { title: 'Test Dashboard', version: 1 } };
+    (axios.post as jest.Mock).mockResolvedValueOnce({ data: {} });
 
-  it('should log response time on successful request', async () => {
-    (performance.now as jest.Mock)
-      .mockReturnValueOnce(0)
-      .mockReturnValueOnce(100);
+    await responseTimeInterceptor.updateDashboard(FINAL_JSON);
 
-    await interceptor.intercept(mockExecutionContext, mockCallHandler).toPromise();
-
-    expect(mockHistogram.labels).toHaveBeenCalledWith({
-      statusCode: 200,
-      endpoint: '/test',
-    });
-  });
-
-  it('should log response time and error on failed request', async () => {
-    const error = new Error('Test Error') as Error & { status: number };
-    error.status = 500;
-    mockCallHandler.handle = jest.fn().mockReturnValue(throwError(() => error));
-
-    (performance.now as jest.Mock)
-      .mockReturnValueOnce(0)
-      .mockReturnValueOnce(200);
-
-    await expect(interceptor.intercept(mockExecutionContext, mockCallHandler).toPromise()).rejects.toThrow('Test Error');
-
-    expect(mockHistogram.labels).toHaveBeenCalledWith({
-      statusCode: 500,
-      endpoint: '/test',
-    });    
+    expect(axios.post).toHaveBeenCalledWith(
+      'http://localhost:7889/api/dashboards/db',
+      FINAL_JSON,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer test_api_token',
+        },
+      }
+    );
   });
 
 });

@@ -44,21 +44,24 @@ export class ResponseTimeInterceptor implements NestInterceptor {
     });
 
     const unlock = await mutex.lock(); 
+    let parsedContent: any;
     try {
       const dashboardJSONSearchResp = await getDashboardJSON(
         this.apiToken,
         'Response_Times',
         this.grafanaBaseURL,
       );
-      this.dashboardUid =
-        dashboardJSONSearchResp.length > 0
-          ? dashboardJSONSearchResp[0]['uid']
-          : undefined;
-      let parsedContent: any;
+      if (dashboardJSONSearchResp && dashboardJSONSearchResp.length > 0) {
+        this.dashboardUid = dashboardJSONSearchResp[0]['uid'];
+      } else {
+        this.dashboardUid = undefined;
+      }
+    
 
       if (this.dashboardUid === undefined || !this.dashboardUid) {
         parsedContent = generateBaseJSON();
-        
+        if (parsedContent && parsedContent.dashboard) {
+
         if (!parsedContent.dashboard.panels) {
           parsedContent.dashboard.panels = [];
         }
@@ -66,7 +69,7 @@ export class ResponseTimeInterceptor implements NestInterceptor {
         if (!this.isPanelPresent(parsedContent.dashboard.panels, name)) {
           parsedContent.dashboard.panels.push(generateRow(name));
         }
-
+      }
         const FINAL_JSON = parsedContent;
         await axios.post(`${this.grafanaBaseURL}/api/dashboards/db`, FINAL_JSON, {
           headers: {
@@ -78,18 +81,36 @@ export class ResponseTimeInterceptor implements NestInterceptor {
       } else {
         parsedContent = await getDashboardByUID(this.dashboardUid, this.grafanaBaseURL, this.apiToken);
 
-        if (!parsedContent.dashboard.panels) {
-          parsedContent.dashboard.panels = [];
+        if (parsedContent && parsedContent.dashboard) {
+          if (!parsedContent.dashboard.panels) {
+            parsedContent.dashboard.panels = [];
+          }
+  
+          if (!this.isPanelPresent(parsedContent.dashboard.panels, name)) {
+            parsedContent.dashboard.panels.push(generateRow(name));
+          }
+  
+          await this.updateDashboard(parsedContent);
+        } else {
+          throw new Error('Invalid dashboard response from Grafana API');
         }
-
-        if (!this.isPanelPresent(parsedContent.dashboard.panels, name)) {
-          parsedContent.dashboard.panels.push(generateRow(name));
-        }
-        await this.updateDashboard(parsedContent);
       }
       this.logger.log('Successfully added histogram to dashboard!');
     } catch (err) {
-      console.error('Error updating Grafana JSON!');
+      const updatedDashboard = parsedContent;
+      if (err.response && err.response.data && err.response.data.status === 'version-mismatch') {
+        this.logger.log('Dashboard version mismatch, retrying with latest version...');
+        updatedDashboard.dashboard.version++;
+        await axios.post(`${this.grafanaBaseURL}/api/dashboards/db`, updatedDashboard, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiToken}`
+          }
+        });
+      } else {
+      console.error('Error updating Grafana JSON!', err);
+      }
     } finally {
       unlock();
     }
@@ -101,7 +122,7 @@ export class ResponseTimeInterceptor implements NestInterceptor {
       .join(' ')
       .trim();
 
-    return panels.some((panel) => panel.title.trim() === formattedName);
+    return panels.some((panel) => panel && panel.title && panel.title.trim() === formattedName);
   }
 
   async updateDashboard(FINAL_JSON: any) {
@@ -114,20 +135,7 @@ export class ResponseTimeInterceptor implements NestInterceptor {
         }
       });
     } catch (err) {
-      const updatedDashboard = FINAL_JSON;
-      if (err.response && err.response.data && err.response.data.status === 'version-mismatch') {
-        this.logger.log('Dashboard version mismatch, retrying with latest version...');
-        updatedDashboard.dashboard.version++;
-        await axios.post(`${this.grafanaBaseURL}/api/dashboards/db`, updatedDashboard, {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.apiToken}`
-          }
-        });
-      } else {
-        throw err;
-      }
+      console.error('Error updating Grafana JSON!', err);
     }
   }
 
