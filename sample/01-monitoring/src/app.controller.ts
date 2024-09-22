@@ -7,7 +7,7 @@ import { ResponseTimeInterceptor } from '@samagra-x/stencil';
   new ResponseTimeInterceptor(
     'controller',
     'http://localhost:7889',
-    'GRAFANA_KEY'
+    'GRAFANA_API_TOKEN'
   ),
 )
 export class AppController {
