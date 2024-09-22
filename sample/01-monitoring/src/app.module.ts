@@ -5,7 +5,10 @@ import { PrometheusController, MonitoringModule } from '@samagra-x/stencil';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [MonitoringModule,ConfigModule.forRoot()],
+  imports: [MonitoringModule,
+    ConfigModule.forRoot({
+      isGlobal: true
+  })],
   controllers: [AppController, PrometheusController],
   providers: [AppService],
 })
