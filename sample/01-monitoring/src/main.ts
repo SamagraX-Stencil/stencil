@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ResponseTimeInterceptor } from '@samagra-x/stencil';
+import { ResponseTimeInterceptor } from '../../../packages/common/src/interceptors/response-time.interceptor'; 
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {

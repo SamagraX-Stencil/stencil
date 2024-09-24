@@ -1,6 +1,6 @@
 import { Controller, Get, UseInterceptors } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ResponseTimeInterceptor } from '@samagra-x/stencil'; 
+import { ResponseTimeInterceptor } from '../../../packages/common/src/interceptors/response-time.interceptor'; 
 
 @Controller()
 @UseInterceptors(
