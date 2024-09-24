@@ -20,12 +20,14 @@
     "test:e2e": "jest --passWithNoTests --runInBand --detectOpenHandles --forceExit --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs/common": "^10.0.0",
+    "@nestjs/common": "^10.4.4",
     "@nestjs/config": "^3.2.3",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@samagra-x/stencil": "^0.0.6",
-    "axios": "^1.6.7",
+    "add": "^2.0.6",
+    "axios": "^1.7.7",
+    "prom-client": "^15.1.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "uuid": "^9.0.1"
