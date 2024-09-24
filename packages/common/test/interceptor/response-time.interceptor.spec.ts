@@ -8,7 +8,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import axios from 'axios';
 import { Observable, of, throwError } from 'rxjs';
 import { getDashboardByUID, getDashboardJSON, generateBaseJSON, generateRow } from '../../src/interceptors/utils';
-import { register } from 'prom-client'; // Import prom-client registry
+import { register } from 'prom-client';
 
 jest.mock('axios');
 jest.mock('../../src/interceptors/utils', () => ({
@@ -17,6 +17,13 @@ jest.mock('../../src/interceptors/utils', () => ({
   generateBaseJSON: jest.fn(),
   generateRow: jest.fn(),
 }));
+interface Dashboard {
+  panels?: any[]; 
+}
+
+interface ParsedContent {
+  dashboard: Dashboard;
+}
 
 describe('ResponseTimeInterceptor', () => {
   let responseTimeInterceptor: ResponseTimeInterceptor;
@@ -126,27 +133,24 @@ it('should observe response time in successful requests', () => {
     expect(result).toBeInstanceOf(Observable);
 
 });
+it('should set dashboardUid from getDashboardJSON response', async () => {
+  const mockUid = 'test-dashboard-uid';
+  (getDashboardJSON as jest.Mock).mockResolvedValue([{ uid: mockUid }]);
 
-  // it('should observe response time on error response', () => {
-  //   const context = {
-  //     switchToHttp: jest.fn().mockReturnValue({
-  //       getRequest: jest.fn().mockReturnValue({ url: '/test-url' }),
-  //       getResponse: jest.fn().mockReturnValue({ statusCode: 500 }),
-  //     }),
-  //   } as unknown as ExecutionContext;
+  await responseTimeInterceptor.init('test_histogram');
 
-  //   const callHandler = {
-  //     handle: jest.fn().mockReturnValue(throwError(() => new Error('test error'))),
-  //   } as unknown as CallHandler;
+  expect(responseTimeInterceptor['dashboardUid']).toBe(mockUid);
+});
 
-  //   const observeSpy = jest.spyOn(responseTimeInterceptor['histogram'].labels({ statusCode: 500, endpoint: '/test-url' }), 'observe');
+it('should initialize parsedContent.dashboard.panels as an empty array if it does not exist', async () => {
+  (getDashboardJSON as jest.Mock).mockResolvedValue([]); 
+  const mockBaseJSON: ParsedContent = { dashboard: {} as Dashboard }; 
+  (generateBaseJSON as jest.Mock).mockReturnValue(mockBaseJSON);
 
-  //   responseTimeInterceptor.intercept(context, callHandler).subscribe({
-  //     error: () => {
-  //       expect(observeSpy).toHaveBeenCalledWith(expect.any(Number)); 
-  //     },
-  //   });
-  // });
+  await responseTimeInterceptor.init('test_histogram');
+
+  expect(mockBaseJSON.dashboard.panels).toEqual([]); 
+});
 
   it('should check if panel exists in dashboard', () => {
     const panels = [{ title: 'Test Panel' }, { title: 'Test Histogram Response Time' }];
