@@ -270,7 +270,7 @@ describe('FileUploadService', () => {
     (service as any).storageEndpoint = 'uploads'; 
     
     const destination = 'local-destination';
-    const mockUploadsDir = path.join(service.storageEndpoint, destination);
+    const mockUploadsDir = path.join(service['storageEndpoint'], destination);
 
     const mkdirSpy = jest.spyOn(fs, 'mkdirSync').mockImplementation(() => ''); 
 

@@ -23,10 +23,10 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FileUploadService {
-  public storage: any;
+  private readonly storage: any;
   private readonly storageMode: string;
   private readonly useSSL: boolean;
-  public  storageEndpoint: string;
+  private readonly  storageEndpoint: string;
   private readonly storagePort: number;
   private logger: Logger;
 
