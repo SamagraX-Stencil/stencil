@@ -26,7 +26,7 @@ export class FileUploadService {
   private readonly storage: any;
   private readonly storageMode: string;
   private readonly useSSL: boolean;
-  private readonly storageEndpoint: string;
+  private readonly  storageEndpoint: string;
   private readonly storagePort: number;
   private logger: Logger;
 
@@ -219,52 +219,52 @@ export class FileUploadService {
     return destination;
   }
 
-  // async uploadMultiple(
-  //   files: ReadonlyArray<MultipartFile>,
-  //   destination: string,
-  //   filenames: string[],
-  // ): Promise<string[]> {
-  //   const directories: string[] = [];
+  async uploadMultiple(
+    files: MultipartFile[],
+    destination: string,
+    filenames: string[],
+  ): Promise<string[]> {
+    const directories: string[] = [];
 
-  //   if (!files || files.length == 0) {
-  //     this.logger.error(`Error uploading file: : 'files' field missing`);
-  //     throw new InternalServerErrorException(
-  //       'File upload failed: files field missing',
-  //     );
-  //   }
-  //   if (!filenames) {
-  //     this.logger.error(`Error uploading file: : 'filenames' field missing`);
-  //     throw new InternalServerErrorException(
-  //       'File upload failed: filenames field missing',
-  //     );
-  //   }
-  //   if (!Array.isArray(filenames)) {
-  //     filenames = [filenames];
-  //   }
-  //   if (filenames.length != files.length) {
-  //     this.logger.error(
-  //       `Error uploading file: Number of files is not equal to number of filenames`,
-  //     );
-  //     throw new InternalServerErrorException(
-  //       'File upload failed: Number of files is not equal to number of filenames',
-  //     );
-  //   }
-  //   let c: number = 0;
-  //   for (const file of files) {
-  //     try {
-  //       const fileUploadRequestDto: FileUploadRequestDTO =
-  //         new FileUploadRequestDTO();
-  //       fileUploadRequestDto.file = file;
-  //       fileUploadRequestDto.destination = destination;
-  //       fileUploadRequestDto.filename = filenames[c];
-  //       const directory = await this.upload(fileUploadRequestDto);
-  //       directories.push(directory);
-  //     } catch (error) {
-  //       this.logger.error(`Error uploading file: ${error}`);
-  //       throw new InternalServerErrorException('File upload failed');
-  //     }
-  //     c++;
-  //   }
-  //   return directories;
-  // }
+    if (!files || files.length == 0) {
+      this.logger.error(`Error uploading file: : 'files' field missing`);
+      throw new InternalServerErrorException(
+        'File upload failed: files field missing',
+      );
+    }
+    if (!filenames) {
+      this.logger.error(`Error uploading file: : 'filenames' field missing`);
+      throw new InternalServerErrorException(
+        'File upload failed: filenames field missing',
+      );
+    }
+    if (!Array.isArray(filenames)) {
+      filenames = [filenames];
+    }
+    if (filenames.length != files.length) {
+      this.logger.error(
+        `Error uploading file: Number of files is not equal to number of filenames`,
+      );
+      throw new InternalServerErrorException(
+        'File upload failed: Number of files is not equal to number of filenames',
+      );
+    }
+    let counter: number = 0;
+    for (const file of files) {
+      try {
+        const fileUploadRequestDto: FileUploadRequestDTO =
+          new FileUploadRequestDTO();
+        fileUploadRequestDto.file = file;
+        fileUploadRequestDto.destination = destination;
+        fileUploadRequestDto.filename = filenames[counter];
+        const directory = await this.upload(fileUploadRequestDto);
+        directories.push(directory);
+      } catch (error) {
+        this.logger.error(`Error uploading file: ${error}`);
+        throw new InternalServerErrorException('File upload failed');
+      }
+      counter++;
+    }
+    return directories;
+  }
 }
