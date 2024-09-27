@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "sourceMap": false,
+    "target": "ES2022",  
+    "outDir": "./",
+    "baseUrl": "./",
+    "alwaysStrict": true,
+    "noImplicitAny": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "noEmit": false
+  },
+  "include": [
+    "src/**/*.ts",
+    "bin/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

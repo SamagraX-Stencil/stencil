@@ -1,0 +1,38 @@
+{
+  "name": "llm",
+  "version": "1.0.0",
+  "main": "index.js",
+  "bin": {
+    "specgpt": "bin/specgpt.js"
+  },
+  "scripts": {
+    "start": "node dist/index.js",
+    "test": "jest --config test/jest-config.json",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "type": "module",
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "@types/jest": "^29.5.13",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.5.5",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.4",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "@samagra-x/stencil-cli": "^0.0.5",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "inquirer": "^11.0.1",
+    "js-yaml": "^4.1.0",
+    "openai": "^4.58.2",
+    "ora": "^8.1.0"
+  }
+}
