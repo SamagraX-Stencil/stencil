@@ -35,7 +35,7 @@ module.exports = {
       logo: {
         alt: 'Site Logo',
         src: 'https://tech.samagragovernance.in/wp-content/uploads/2021/02/L2-e1614174909114.png',
-        srcDark: '/logos/dark-logo.png',
+        srcDark: 'https://tech.samagragovernance.in/wp-content/uploads/2021/02/L2-e1614174909114.png',
         href: '/',
         target: '_self',
         width: 140,
