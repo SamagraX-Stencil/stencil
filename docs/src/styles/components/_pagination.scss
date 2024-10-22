@@ -1,14 +1,15 @@
-//overrides
 #__docusaurus {
   .pagination-nav {
     &__link {
       border: none;
-
       transition: color 0.2s ease-out;
     }
 
     &__label {
       --icon-padding: 0.25rem;
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
     }
 
     &__sublabel {
@@ -18,17 +19,17 @@
     //Previous item
     > div:first-of-type {
       .pagination-nav__link {
-        padding-inline-start: 0;
+        padding-inline-start: var(--icon-padding); 
       }
 
       .pagination-nav__label {
-        padding-inline-start: var(--icon-padding);
+        padding-inline-start: calc(var(--icon-padding) * 2); 
 
         &::before {
           padding-inline-end: var(--icon-padding);
           position: absolute;
           background-color: var(--ifm-background-color);
-          transform: translateX(calc(var(--icon-padding) * -1));
+          transform: translateX(calc(var(--icon-padding) * -2)); 
           content: '←';
         }
       }
@@ -37,20 +38,23 @@
     //Next item
     > div:last-of-type {
       .pagination-nav__link {
-        padding-inline-end: 0;
+        padding-inline-end: var(--icon-padding); 
       }
 
       .pagination-nav__label {
-        padding-inline-end: var(--icon-padding);
+        padding-inline-end: calc(var(--icon-padding) * 2); 
 
         &::after {
           padding-inline-start: var(--icon-padding);
           position: absolute;
           background-color: var(--ifm-background-color);
-          transform: translateX(calc(-100% + var(--icon-padding)));
+          transform: translateX(calc(-100% + var(--icon-padding) * 2));
           content: '→';
         }
       }
     }
   }
 }
+
+
+
